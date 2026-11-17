@@ -1,0 +1,10 @@
+{
+  "experiment": "linux-admin-002-systemic",
+  "input": "eaafa09583581498c2b7fb0c11f09e14d250aef79470b9ea9b715b54b1d51167",
+  "model": "9016d8589b5a33bbeb398c6f5fcfd566390e50a4b87fab843e8c3d6f16307eb9",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "e3927009cb0897f37a4db5a2ef440daac1942e24114af5e83fb3877b2313fca5",
+  "proof": "88418c4d5dc28dc806f00dd0bf333a8cd8271d5468ce410412bee6564ac72198",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

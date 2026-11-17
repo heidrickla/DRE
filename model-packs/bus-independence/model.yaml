@@ -1,0 +1,8 @@
+model:
+  id: bus-independence
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Five sensors, one predicate, one acquisition bus. Built to answer a
+    single question: does the existing source-level independence_group
+    already do the job, or is correlation modelling genuinely missing?

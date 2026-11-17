@@ -1,0 +1,42 @@
+# A space whose axes are both derived.
+#
+# This is what makes the pack a real test of features rather than a
+# decoration on one: neither `efficiency_percent` nor `load_percent` is
+# observed, so if derivation fails the space has no coordinates and the
+# engine must decline to classify rather than guess.
+#
+# Both axes are already percentages, so they share a scale and the weights
+# are equal. The diagnosis pack needs unequal weights precisely because its
+# axes do not.
+
+space:
+  subject: pump
+  classify_into: nearest_region
+  dimensions:
+    - id: efficiency_percent
+      weight: 1
+    - id: load_percent
+      weight: 1
+
+regions:
+  - id: HEALTHY
+    centroid:
+      efficiency_percent: 88
+      load_percent: 60
+    bounds:
+      efficiency_percent: { min: 75, max: 100 }
+      load_percent: { min: 0, max: 85 }
+
+  - id: OVERLOADED
+    centroid:
+      efficiency_percent: 85
+      load_percent: 95
+    bounds:
+      load_percent: { min: 85, max: 200 }
+
+  - id: FAULTY
+    centroid:
+      efficiency_percent: 45
+      load_percent: 70
+    bounds:
+      efficiency_percent: { min: 0, max: 70 }

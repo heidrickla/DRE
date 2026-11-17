@@ -1,0 +1,8 @@
+model:
+  id: windows-admin-reboot
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    Windows desktop and server administration model for patch compliance,
+    pending reboot triage, domain-controller safety, service dependency
+    health, and change-controlled reboot planning.

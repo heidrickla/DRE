@@ -1,0 +1,32 @@
+features:
+  - id: F001
+    subject: incident.checkout_error_rate_excess_pct
+    description: Checkout error rate above the normal one percent alert floor.
+    expression:
+      subtract:
+        - subject: incident.checkout_error_rate_pct
+        - literal: "1.0"
+
+  - id: F002
+    subject: incident.api_p95_delta_ms
+    description: API p95 latency above the normal baseline.
+    expression:
+      subtract:
+        - subject: incident.api_p95_ms
+        - subject: incident.api_baseline_p95_ms
+
+  - id: F003
+    subject: incident.db_p95_delta_ms
+    description: Database p95 latency above the normal baseline.
+    expression:
+      subtract:
+        - subject: incident.db_p95_ms
+        - subject: incident.db_baseline_p95_ms
+
+  - id: F004
+    subject: incident.datastore_write_delta_ms
+    description: Shared datastore write p95 latency above the normal baseline.
+    expression:
+      subtract:
+        - subject: incident.datastore_write_p95_ms
+        - subject: incident.datastore_baseline_write_p95_ms

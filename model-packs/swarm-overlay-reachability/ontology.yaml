@@ -1,0 +1,86 @@
+entities:
+  service:
+    properties:
+      desired_replicas:
+        type: integer
+        min: 0
+      running_replicas:
+        type: integer
+        min: 0
+      replica_gap:
+        type: fixed
+      attached_network_count:
+        type: integer
+        min: 0
+      available:
+        type: boolean
+      degraded:
+        type: boolean
+      on_app:
+        type: boolean
+      on_data:
+        type: boolean
+      on_edge:
+        type: boolean
+      on_graylog_edge:
+        type: boolean
+      on_inference:
+        type: boolean
+      on_observability:
+        type: boolean
+      on_security:
+        type: boolean
+      can_reach_postgres:
+        type: boolean
+      postgres_unreachable:
+        type: boolean
+      can_reach_prometheus:
+        type: boolean
+      can_reach_ollama:
+        type: boolean
+      ollama_unreachable:
+        type: boolean
+      app_without_postgres_gateway:
+        type: boolean
+      inference_client:
+        type: boolean
+      isolated_inference_backend:
+        type: boolean
+      externally_routable:
+        type: boolean
+      control_plane_bridge:
+        type: boolean
+      observable_data_bridge:
+        type: boolean
+      high_blast_radius:
+        type: boolean
+      exposed_high_blast_gateway:
+        type: boolean
+      data_plane_single_network:
+        type: boolean
+
+  overlay_network:
+    properties:
+      tier:
+        type: symbol
+        values:
+          - app
+          - data
+          - edge
+          - graylog_edge
+          - inference
+          - observability
+          - security
+      contains_postgres:
+        type: boolean
+      contains_prometheus:
+        type: boolean
+      contains_ollama:
+        type: boolean
+
+relationships:
+  attached_to:
+    from: service
+    to: overlay_network
+    targets_per_source: many
+    sources_per_target: many

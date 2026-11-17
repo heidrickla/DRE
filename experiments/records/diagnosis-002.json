@@ -1,0 +1,10 @@
+{
+  "experiment": "diagnosis-002",
+  "input": "fc2bc85ca3a2f987f836edebc8d751ee20c88db3b87fd8450f557cae482d2563",
+  "model": "e34a5cd3f86db965a319c2fa27fe4a625f0d33145e9affba2e5893b100e7f973",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "ba8531778e505d2000cc321163843f3b82cac155d8a7a0c50ed6fc3a20beb4c3",
+  "proof": "b9a88607e3b10aaf20cfa861daca9f76785b173bafa631d1d72af96e3ccc22b2",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

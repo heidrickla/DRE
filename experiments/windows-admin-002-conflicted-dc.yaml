@@ -1,0 +1,189 @@
+# Prediction recorded before execution.
+#
+# I cannot run the engine in this workspace. This prediction is deliberately
+# specific enough to be wrong when the engine is later run.
+#
+# Scenario:
+# A domain controller has patch debt, multiple reboot indicators, stale GPO
+# data, one replication failure, one critical service failure, DSC drift, and
+# conflicting patch telemetry that should resolve to "latest update missing"
+# because two independent sources report false.
+#
+# Expected asserted properties:
+# - host-1.latest_security_update_installed = false, KNOWN, after evidence
+#   resolution. wsus and wmi-local independently report false; configmgr alone
+#   reports true.
+# - host-1.reboot_required = true, INFERRED, from R001, R002, and R003.
+# - host-1.patch_compliance_state = overdue, INFERRED, from R005.
+# - host-1.gpo_state = stale, INFERRED, from R006.
+# - host-1.directory_health = degraded, INFERRED, from R008.
+# - host-1.service_health = degraded, INFERRED, from R010.
+# - host-1.reboot_urgency = CONFLICTING, because R012 infers high and R013
+#   infers critical from the same score. This is probably the wrong answer for
+#   the domain; severity thresholds should be mutually exclusive or ordered so
+#   critical wins.
+# - host-1.admin_action_state = CONFLICTING, because R014 says reboot-required
+#   while R016 says investigate-first. This is a real domain ambiguity, not
+#   necessarily an engine bug.
+# - host-1.reboot_readiness = blocked-by-service, INFERRED, from R020. R019
+#   should not fire because peer_dc_available is true.
+# - host-1.likely_root_cause should not be written, status UNKNOWN, because
+#   pending-reboot and directory-health appear tied under the explanation score:
+#   both cover three supported observations through two mechanisms and leave
+#   three supported observations unexplained.
+#
+# Expected features:
+# - reboot_flag_pressure = 120.0
+# - patch_age_pressure = 90.0
+# - uptime_pressure = 432.0
+# - ad_risk_score = 75.0
+# - service_risk_score = 60.0
+# - admin_risk_score = 777.0
+#
+# Expected rules to fire:
+# R001, R002, R003, R005, R006, R008, R010, R012, R013, R014, R016, R020.
+#
+# Least certain:
+# - Evidence resolution for booleans: the brief describes conflicting values
+#   and corroboration, but I am guessing that one value with enough independent
+#   groups becomes KNOWN even when a rival value has one high-reliability group.
+# - Explanation tie handling: the brief says exact ties write no rank_into
+#   value, but also says ordering is total. I predict the score tie prevents a
+#   state write despite the identifier tie-breaker used for reporting order.
+experiment:
+  id: windows-admin-002-conflicted-dc
+  description: A domain controller where patching, reboot flags, directory health, service health, and configuration drift compete.
+  pack: model-packs/windows-admin-reboot
+
+  given:
+    now: 2000
+    entities:
+      - id: host-1
+        type: host
+        properties:
+          - name: is_domain_controller
+            value: true
+            status: KNOWN
+          - name: handles_interactive_logons
+            value: true
+            status: KNOWN
+          - name: days_since_patch
+            value: 120
+            status: KNOWN
+          - name: uptime_hours
+            value: 600
+            status: KNOWN
+          - name: pending_reboot_flags_count
+            value: 3
+            status: KNOWN
+          - name: cbs_reboot_pending
+            value: true
+            status: KNOWN
+          - name: wu_reboot_pending
+            value: true
+            status: KNOWN
+          - name: file_rename_pending
+            value: false
+            status: KNOWN
+          - name: dsc_drift_detected
+            value: true
+            status: KNOWN
+          - name: gpupdate_pending
+            value: true
+            status: KNOWN
+          - name: update_cache_corrupt
+            value: true
+            status: KNOWN
+          - name: ad_replication_failures
+            value: 1
+            status: KNOWN
+          - name: critical_service_failures
+            value: 1
+            status: KNOWN
+          - name: gpo_age_hours
+            value: 96
+            status: KNOWN
+          - name: maintenance_window_open
+            value: true
+            status: KNOWN
+          - name: business_hours
+            value: false
+            status: KNOWN
+          - name: peer_dc_available
+            value: true
+            status: KNOWN
+          - name: change_ticket_open
+            value: true
+            status: KNOWN
+          - name: reboot_scheduled
+            value: false
+            status: KNOWN
+          - name: reboot_completed
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: configmgr
+        reliability: 930
+        independence_group: config-manager
+      - id: wsus
+        reliability: 900
+        independence_group: update-services
+      - id: wmi-local
+        reliability: 850
+        independence_group: host-local
+
+    evidence:
+      - id: E001
+        subject: host-1
+        predicate: latest_security_update_installed
+        value: true
+        source: configmgr
+        reliability: 930
+        observed_at: 1990
+      - id: E002
+        subject: host-1
+        predicate: latest_security_update_installed
+        value: false
+        source: wsus
+        reliability: 900
+        observed_at: 1995
+      - id: E003
+        subject: host-1
+        predicate: latest_security_update_installed
+        value: false
+        source: wmi-local
+        reliability: 850
+        observed_at: 1996
+
+  expect:
+    properties:
+      - subject: host-1.latest_security_update_installed
+        value: false
+        status: KNOWN
+      - subject: host-1.reboot_required
+        value: true
+        status: INFERRED
+      - subject: host-1.patch_compliance_state
+        value: overdue
+        status: INFERRED
+      - subject: host-1.directory_health
+        value: degraded
+        status: INFERRED
+      - subject: host-1.service_health
+        value: degraded
+        status: INFERRED
+      - subject: host-1.reboot_urgency
+        status: CONFLICTING
+      - subject: host-1.admin_action_state
+        status: CONFLICTING
+      - subject: host-1.reboot_readiness
+        value: blocked-by-service
+        status: INFERRED
+      - subject: host-1.likely_root_cause
+        status: UNKNOWN

@@ -1,0 +1,8 @@
+model:
+  id: device-cascade
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    One power rail fails and four things on the device start complaining.
+    Built to be run against the engine UNCHANGED, to find out where the
+    current model breaks rather than to demonstrate that it works.

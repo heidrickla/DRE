@@ -1,0 +1,65 @@
+# Rules over derived quantities.
+#
+# Operands are written `{fixed: ...}` because features produce fixed-point
+# values, and ordered comparison is only defined between like kinds. An
+# integer operand against a fixed-point property is not false, it is
+# meaningless, and the engine returns UNKNOWN rather than letting a type
+# mismatch decide whether a rule fires.
+#
+# The whole file is the payoff of features.yaml: none of these conditions
+# can be written against a measurement, because none of these quantities
+# is measured.
+
+rules:
+  - id: R001
+    description: Efficiency below seventy percent is a degraded pump.
+    if:
+      - subject: pump.efficiency
+        operator: LT
+        operand: { fixed: "0.70" }
+    infer:
+      - subject: pump.degraded
+        value: true
+    priority: 100
+
+  - id: R002
+    description: Running above ninety percent of rated output is overloaded.
+    if:
+      - subject: pump.load_percent
+        operator: GT
+        operand: { fixed: "90" }
+    infer:
+      - subject: pump.overloaded
+        value: true
+    priority: 100
+
+  - id: R003
+    description: An overloaded pump that is otherwise healthy should be eased off.
+    if:
+      - subject: pump.overloaded
+        operator: EQ
+        operand: true
+      - subject: pump.degraded
+        operator: UNKNOWN
+    infer:
+      - subject: pump.advice
+        value: reduce-load
+    priority: 200
+
+  - id: R004
+    description: >-
+      An overloaded pump that is also degraded needs servicing, not just
+      easing off. More specific than R003 at the same priority, so the
+      engine's specificity ordering decides which is considered first
+      rather than the order they appear here.
+    if:
+      - subject: pump.overloaded
+        operator: EQ
+        operand: true
+      - subject: pump.degraded
+        operator: EQ
+        operand: true
+    infer:
+      - subject: pump.advice
+        value: service-now
+    priority: 200

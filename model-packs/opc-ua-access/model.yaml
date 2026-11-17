@@ -1,0 +1,9 @@
+model:
+  id: opc-ua-access
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    OPC UA access reasoning for one staged request, combining secure channel
+    freshness, endpoint cryptographic posture, certificate trust, session
+    assurance, request risk, server exposure geometry, and competing accounts
+    for why access should not be granted automatically.

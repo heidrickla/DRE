@@ -1,0 +1,27 @@
+# Model Pack D: process performance.
+#
+# The pack that exists to exercise `features.yaml`. Every other pack
+# reasons about quantities it was handed; this one reasons about
+# quantities it has to compute, and nothing it concludes is available
+# without arithmetic.
+#
+# That is not a contrived requirement. Efficiency, load and loss are all
+# ratios and differences of measurements, and a rule can only conclude a
+# literal -- so before derived features existed, a domain shaped like this
+# one could not be expressed as a pack at all. It needed an engine change,
+# which is exactly what `model-packs/README.md` says must never be true.
+#
+# The second thing it exercises is the difference between "not measured"
+# and "not defined". A stopped pump reports zero in and zero out. Its
+# efficiency is not zero -- it is undefined, and a model that computed
+# 0/0 as 0 would classify an idle pump as catastrophically inefficient
+# and recommend servicing it.
+
+model:
+  id: process-performance
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Pump performance from derived quantities. Exercises arithmetic
+    features, features that read other features, and the distinction
+    between an unmeasured quantity and an undefined one.

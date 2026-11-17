@@ -1,0 +1,10 @@
+goals:
+  - id: REACH_GOAL
+    description: Stand on the north-east corner.
+    conditions:
+      - subject: agent.x
+        operator: EQ
+        operand: 4
+      - subject: agent.y
+        operator: EQ
+        operand: 4

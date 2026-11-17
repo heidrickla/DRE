@@ -1,0 +1,68 @@
+experiment:
+  id: switch-001-optical
+  description: "Straightforward case: stable DC input but poor uplink optical receive power, CRC errors, and flapping."
+  pack: model-packs/industrial-switch-diagnosis
+  given:
+    now: 1000
+    entities:
+      - id: switch-1
+        type: ethernet_switch
+        properties:
+          - name: input_voltage
+            value: {fixed: "50.2"}
+            status: KNOWN
+          - name: port_a_crc_rate
+            value: {fixed: "145.0"}
+            status: KNOWN
+          - name: port_b_crc_rate
+            value: {fixed: "20.0"}
+            status: KNOWN
+          - name: port_c_crc_rate
+            value: {fixed: "18.0"}
+            status: KNOWN
+          - name: uplink_flap_rate
+            value: {fixed: "7.0"}
+            status: KNOWN
+          - name: cpu_load
+            value: {fixed: "28.0"}
+            status: KNOWN
+          - name: chassis_temp
+            value: {fixed: "49.0"}
+            status: KNOWN
+          - name: fan_rpm
+            value: {fixed: "4100.0"}
+            status: KNOWN
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+    sources:
+      - id: transceiver-ddm
+        reliability: 930
+        independence_group: switch-ddm
+      - id: optical-meter
+        reliability: 920
+        independence_group: field-meter
+    evidence:
+      - id: E001
+        subject: switch-1
+        predicate: optical_rx_power
+        value: {fixed: "-18.2"}
+        source: transceiver-ddm
+        reliability: 920
+        observed_at: 995
+      - id: E002
+        subject: switch-1
+        predicate: optical_rx_power
+        value: {fixed: "-18.2"}
+        source: optical-meter
+        reliability: 910
+        observed_at: 996
+  expect:
+    properties:
+      - subject: switch-1.diagnosis
+        value: uplink_optical_degradation
+        status: INFERRED
+      - subject: switch-1.service_risk
+        value: elevated
+        status: INFERRED

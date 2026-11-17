@@ -1,0 +1,10 @@
+{
+  "experiment": "windows-admin-001-straightforward",
+  "input": "ea227585cbd54c1a873d827d3b216bf89a3ed75144ddcc730de5c456b9a0eeaa",
+  "model": "acb69651832d742e017a2e118855abe3b25dc0cc39b58592cff10e719775b6ed",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "7abf1f00e7d1432af38a4e7561b931c3b31835234edd4168f67b1c837abc7d15",
+  "proof": "fed3760849aaeac1a8c299325751ef7c604fe50089e1dc1639b3ec2993d814f9",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

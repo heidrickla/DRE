@@ -1,0 +1,16 @@
+# A pack that is valid YAML, loads cleanly, and is wrong in five ways.
+#
+# Test fixture, deliberately broken. It is not under `model-packs/` because
+# it is not a reasoning domain -- it is the negative control for
+# `dre validate`. A validator that has never been shown failing is
+# indistinguishable from one that cannot fail.
+#
+# Every fault here is invisible at run time. Nothing throws, nothing warns,
+# and the run produces an ordinary-looking answer that has quietly skipped
+# a step.
+
+model:
+  id: broken-fixture
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: Deliberately inconsistent pack, used to test validation.

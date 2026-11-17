@@ -1,0 +1,311 @@
+rules:
+  - id: R001
+    description: Endpoint security is unacceptable when the policy strength is below the local floor.
+    if:
+      - subject: server.crypto_score
+        operator: LT
+        operand: {fixed: "0"}
+    infer:
+      - subject: endpoint.mode_policy_ok
+        value: false
+    priority: 10
+
+  - id: R002
+    description: SignAndEncrypt with a non-deprecated policy meeting the floor is acceptable.
+    if:
+      - subject: endpoint.security_mode
+        operator: EQ
+        operand: sign_and_encrypt
+      - subject: server.crypto_score
+        operator: GTE
+        operand: {fixed: "0"}
+      - subject: endpoint.deprecated_policy
+        operator: EQ
+        operand: false
+    infer:
+      - subject: endpoint.mode_policy_ok
+        value: true
+    priority: 20
+
+  - id: R003
+    description: Deprecated endpoint policies are unacceptable even if the nominal strength is high.
+    if:
+      - subject: endpoint.deprecated_policy
+        operator: EQ
+        operand: true
+    infer:
+      - subject: endpoint.mode_policy_ok
+        value: false
+    priority: 20
+
+  - id: R004
+    description: A trusted, unrevoked, hostname-matching, unexpired certificate is acceptable.
+    if:
+      - subject: cert.trustlist_state
+        operator: EQ
+        operand: trusted
+      - subject: cert.revoked
+        operator: EQ
+        operand: false
+      - subject: cert.hostname_match
+        operator: EQ
+        operand: true
+      - subject: cert.expiry_margin_days
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: cert.trust_ok
+        value: true
+      - subject: cert.cert_health
+        value: healthy
+    priority: 30
+
+  - id: R005
+    description: Revocation makes the application instance certificate unacceptable.
+    if:
+      - subject: cert.revoked
+        operator: EQ
+        operand: true
+    infer:
+      - subject: cert.trust_ok
+        value: false
+      - subject: cert.cert_health
+        value: bad
+    priority: 30
+
+  - id: R006
+    description: Hostname mismatch makes the application instance certificate unacceptable.
+    if:
+      - subject: cert.hostname_match
+        operator: EQ
+        operand: false
+    infer:
+      - subject: cert.trust_ok
+        value: false
+      - subject: cert.cert_health
+        value: bad
+    priority: 30
+
+  - id: R007
+    description: A token with non-negative remaining lifetime does not require renewal.
+    if:
+      - subject: channel.token_age_margin
+        operator: GTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: channel.renew_required
+        value: false
+    priority: 40
+
+  - id: R008
+    description: An expired secure channel token requires renewal and makes the channel unusable.
+    if:
+      - subject: channel.token_age_margin
+        operator: LT
+        operand: {fixed: "0"}
+    infer:
+      - subject: channel.renew_required
+        value: true
+      - subject: channel.channel_secure
+        value: false
+    priority: 40
+
+  - id: R009
+    description: The secure channel is usable only when open, cryptographically acceptable, trusted, and fresh.
+    if:
+      - subject: channel.secure_channel_open
+        operator: EQ
+        operand: true
+      - subject: endpoint.mode_policy_ok
+        operator: EQ
+        operand: true
+      - subject: cert.trust_ok
+        operator: EQ
+        operand: true
+      - subject: channel.renew_required
+        operator: EQ
+        operand: false
+    infer:
+      - subject: channel.channel_secure
+        value: true
+    priority: 50
+
+  - id: R010
+    description: Anonymous sessions are not authorized for this pack's write-oriented request model.
+    if:
+      - subject: session.auth_method
+        operator: EQ
+        operand: anonymous
+    infer:
+      - subject: session.user_authorized
+        value: false
+      - subject: session.session_assurance
+        value: denied
+    priority: 60
+
+  - id: R011
+    description: User-certificate authentication with enough evidence gives strong session assurance.
+    if:
+      - subject: session.auth_method
+        operator: EQ
+        operand: user_certificate
+      - subject: session.auth_gap
+        operator: GTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: session.user_authorized
+        value: true
+      - subject: session.session_assurance
+        value: strong
+    priority: 60
+
+  - id: R012
+    description: Username authentication below the evidence threshold is authorized but weak.
+    if:
+      - subject: session.auth_method
+        operator: EQ
+        operand: username
+      - subject: session.auth_gap
+        operator: LT
+        operand: {fixed: "0"}
+    infer:
+      - subject: session.user_authorized
+        value: true
+      - subject: session.session_assurance
+        value: weak
+    priority: 60
+
+  - id: R013
+    description: Writes to safety-critical targets require manual approval.
+    if:
+      - subject: operation.service
+        operator: EQ
+        operand: write
+      - subject: operation.target_safety_class
+        operator: EQ
+        operand: safety_critical
+    infer:
+      - subject: operation.request_risk
+        value: high
+      - subject: operation.write_requires_approval
+        value: true
+    priority: 70
+
+  - id: R014
+    description: Configuration writes to process-critical targets are moderate risk.
+    if:
+      - subject: operation.service
+        operator: EQ
+        operand: write
+      - subject: operation.target_safety_class
+        operator: EQ
+        operand: process_critical
+      - subject: operation.requested_value_class
+        operator: EQ
+        operand: configuration
+    infer:
+      - subject: operation.request_risk
+        value: moderate
+      - subject: operation.write_requires_approval
+        value: false
+    priority: 70
+
+  - id: R015
+    description: An unusable secure channel denies the request before application authorization.
+    if:
+      - subject: channel.channel_secure
+        operator: EQ
+        operand: false
+    infer:
+      - subject: operation.access_decision
+        value: deny
+      - subject: operation.permit_write
+        value: false
+      - subject: operation.audit_required
+        value: true
+    priority: 80
+
+  - id: R016
+    description: A secure diagnostic read by an authorized user may be allowed.
+    if:
+      - subject: operation.service
+        operator: EQ
+        operand: read
+      - subject: operation.target_safety_class
+        operator: EQ
+        operand: diagnostic
+      - subject: channel.channel_secure
+        operator: EQ
+        operand: true
+      - subject: session.user_authorized
+        operator: EQ
+        operand: true
+    infer:
+      - subject: operation.access_decision
+        value: allow
+      - subject: operation.audit_required
+        value: false
+    priority: 90
+
+  - id: R017
+    description: A high-risk safety write over a secure channel is manual review, not automatic allow.
+    if:
+      - subject: channel.channel_secure
+        operator: EQ
+        operand: true
+      - subject: session.user_authorized
+        operator: EQ
+        operand: true
+      - subject: operation.request_risk
+        operator: EQ
+        operand: high
+    infer:
+      - subject: operation.access_decision
+        value: manual_review
+      - subject: operation.permit_write
+        value: false
+      - subject: operation.audit_required
+        value: true
+    priority: 90
+
+  - id: R018
+    description: Moderate configuration writes may be allowed when policy permits and the channel and identity are acceptable.
+    if:
+      - subject: channel.channel_secure
+        operator: EQ
+        operand: true
+      - subject: session.user_authorized
+        operator: EQ
+        operand: true
+      - subject: operation.request_risk
+        operator: EQ
+        operand: moderate
+      - subject: server.write_policy
+        operator: EQ
+        operand: allow
+    infer:
+      - subject: operation.access_decision
+        value: allow
+      - subject: operation.permit_write
+        value: true
+      - subject: operation.audit_required
+        value: true
+    priority: 90
+
+  - id: R019
+    description: Weak session assurance prevents automatic writes even when the user is nominally authorized.
+    if:
+      - subject: operation.service
+        operator: EQ
+        operand: write
+      - subject: session.session_assurance
+        operator: EQ
+        operand: weak
+    infer:
+      - subject: operation.access_decision
+        value: manual_review
+      - subject: operation.permit_write
+        value: false
+      - subject: operation.audit_required
+        value: true
+    priority: 95

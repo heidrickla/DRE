@@ -1,0 +1,378 @@
+rules:
+  - id: R001
+    description: A service is available when the frozen replica gap is zero.
+    if:
+      - subject: service.replica_gap
+        operator: EQ
+        operand: {fixed: "0"}
+    infer:
+      - subject: service.available
+        value: true
+    priority: 10
+
+  - id: R002
+    description: A service is degraded when fewer replicas are running than desired.
+    if:
+      - subject: service.replica_gap
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: service.degraded
+        value: true
+    priority: 10
+
+  - id: R010
+    description: Service is attached to the app overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: app
+    infer:
+      - subject: service.on_app
+        value: true
+    priority: 20
+
+  - id: R011
+    description: Service is attached to the data overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: data
+    infer:
+      - subject: service.on_data
+        value: true
+    priority: 20
+
+  - id: R012
+    description: Service is attached to the edge overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: edge
+    infer:
+      - subject: service.on_edge
+        value: true
+    priority: 20
+
+  - id: R013
+    description: Service is attached to the Graylog edge overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: graylog_edge
+    infer:
+      - subject: service.on_graylog_edge
+        value: true
+    priority: 20
+
+  - id: R014
+    description: Service is attached to the inference overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: inference
+    infer:
+      - subject: service.on_inference
+        value: true
+    priority: 20
+
+  - id: R015
+    description: Service is attached to the observability overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: observability
+    infer:
+      - subject: service.on_observability
+        value: true
+    priority: 20
+
+  - id: R016
+    description: Service is attached to the security overlay.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: security
+    infer:
+      - subject: service.on_security
+        value: true
+    priority: 20
+
+  - id: R020
+    description: Service can reach Postgres if any attached network contains Postgres.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: contains_postgres
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.can_reach_postgres
+        value: true
+    priority: 30
+
+  - id: R021
+    description: Service cannot reach Postgres if no attached network contains Postgres.
+    if:
+      - not:
+          reach:
+            from: service
+            path:
+              - edge: attached_to
+                direction: out
+            read: contains_postgres
+          collapse: some
+          operator: EQ
+          operand: true
+    infer:
+      - subject: service.postgres_unreachable
+        value: true
+    priority: 30
+
+  - id: R022
+    description: Service can reach Prometheus if any attached network contains Prometheus.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: contains_prometheus
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.can_reach_prometheus
+        value: true
+    priority: 30
+
+  - id: R023
+    description: Service can reach Ollama if any attached network contains Ollama.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: contains_ollama
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.can_reach_ollama
+        value: true
+    priority: 30
+
+  - id: R024
+    description: Service cannot reach Ollama if no attached network contains Ollama.
+    if:
+      - not:
+          reach:
+            from: service
+            path:
+              - edge: attached_to
+                direction: out
+            read: contains_ollama
+          collapse: some
+          operator: EQ
+          operand: true
+    infer:
+      - subject: service.ollama_unreachable
+        value: true
+    priority: 30
+
+  - id: R030
+    description: App-only callers without a data overlay cannot reach the single-network Postgres service.
+    if:
+      - subject: service.on_app
+        operator: EQ
+        operand: true
+      - subject: service.postgres_unreachable
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.app_without_postgres_gateway
+        value: true
+    priority: 40
+
+  - id: R031
+    description: A service on both app and inference overlays is an inference client or bridge.
+    if:
+      - subject: service.on_app
+        operator: EQ
+        operand: true
+      - subject: service.on_inference
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.inference_client
+        value: true
+    priority: 40
+
+  - id: R032
+    description: A service only on inference, not app or data, is an isolated inference backend.
+    if:
+      - reach:
+          from: service
+          path:
+            - edge: attached_to
+              direction: out
+          read: tier
+        collapse: some
+        operator: EQ
+        operand: inference
+      - not:
+          reach:
+            from: service
+            path:
+              - edge: attached_to
+                direction: out
+            read: tier
+          collapse: some
+          operator: EQ
+          operand: app
+      - not:
+          reach:
+            from: service
+            path:
+              - edge: attached_to
+                direction: out
+            read: tier
+          collapse: some
+          operator: EQ
+          operand: data
+    infer:
+      - subject: service.isolated_inference_backend
+        value: true
+    priority: 40
+
+  - id: R033
+    description: A service on the edge or Graylog edge overlay is externally routable in this topology.
+    if:
+      - any:
+          - subject: service.on_edge
+            operator: EQ
+            operand: true
+          - subject: service.on_graylog_edge
+            operator: EQ
+            operand: true
+    infer:
+      - subject: service.externally_routable
+        value: true
+    priority: 40
+
+  - id: R034
+    description: A service bridging app, data and security overlays is a control-plane bridge.
+    if:
+      - subject: service.on_app
+        operator: EQ
+        operand: true
+      - subject: service.on_data
+        operator: EQ
+        operand: true
+      - subject: service.on_security
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.control_plane_bridge
+        value: true
+    priority: 40
+
+  - id: R035
+    description: A data service that can reach Prometheus through a shared overlay is an observable data bridge.
+    if:
+      - subject: service.on_data
+        operator: EQ
+        operand: true
+      - subject: service.can_reach_prometheus
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.observable_data_bridge
+        value: true
+    priority: 40
+
+  - id: R036
+    description: Attachment to at least four overlays is a high blast-radius topology.
+    if:
+      - subject: service.attached_network_count
+        operator: GTE
+        operand: 4
+    infer:
+      - subject: service.high_blast_radius
+        value: true
+    priority: 40
+
+  - id: R037
+    description: A high blast-radius service exposed on an edge overlay is an exposed high blast gateway.
+    if:
+      - subject: service.high_blast_radius
+        operator: EQ
+        operand: true
+      - subject: service.externally_routable
+        operator: EQ
+        operand: true
+    infer:
+      - subject: service.exposed_high_blast_gateway
+        value: true
+    priority: 50
+
+  - id: R038
+    description: A data-attached service with exactly one network is a single-network data-plane service.
+    if:
+      - subject: service.on_data
+        operator: EQ
+        operand: true
+      - subject: service.attached_network_count
+        operator: EQ
+        operand: 1
+    infer:
+      - subject: service.data_plane_single_network
+        value: true
+    priority: 50

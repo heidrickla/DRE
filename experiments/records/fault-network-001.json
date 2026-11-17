@@ -1,0 +1,10 @@
+{
+  "experiment": "fault-network-001",
+  "input": "7805aa2935a4ed2617adf17f2ad20b802bbbd2337b97bfd9558d695479e9ace6",
+  "model": "63df960bee8e6c331ff889ba3102b683af31e8da494aa74450ab9c29fcb51ca1",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "f022c0ea3afc29ba35522e208d39cfbab86e0958363370f5c7780303fa870ad5",
+  "proof": "a17d37db1027109e62901885a1d5464bea9dd46a6322e5a1952215d6a49fd4ab",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

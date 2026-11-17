@@ -1,0 +1,85 @@
+entities:
+  incident:
+    properties:
+      user_reports_unavailable:
+        type: boolean
+      incident_open:
+        type: boolean
+
+      dns_query_answered:
+        type: boolean
+      dns_resolves_app:
+        type: boolean
+      name_resolution_status:
+        type: symbol
+        values: [ok, failed, no_answer]
+
+      app_ip_reachable:
+        type: boolean
+      tcp_443_open:
+        type: boolean
+      network_path_status:
+        type: symbol
+        values: [ok, host_unreachable, port_blocked]
+
+      tls_probe_answered:
+        type: boolean
+      tls_cert_valid:
+        type: boolean
+      cert_days_remaining:
+        type: integer
+      cert_expiry_margin:
+        type: fixed
+      tls_status:
+        type: symbol
+        values: [ok, certificate_bad, expiring_soon, no_answer]
+
+      http_status_class:
+        type: symbol
+        values: [ok, redirect, client_error, server_error, no_response]
+      web_health_reported_ok:
+        type: boolean
+      web_status:
+        type: symbol
+        values: [healthy, unhealthy]
+
+      db_connectivity_ok:
+        type: boolean
+      db_replica_lag_seconds:
+        type: integer
+      db_lag_margin:
+        type: fixed
+      dependency_status:
+        type: symbol
+        values: [data_ok, db_failed, db_lagging]
+
+      ldap_bind_ok:
+        type: boolean
+      ad_replication_lag_seconds:
+        type: integer
+      ad_lag_margin:
+        type: fixed
+      auth_error_seen:
+        type: boolean
+      auth_dependency_status:
+        type: symbol
+        values: [auth_ok, ldap_failed, ad_replication_lagging]
+
+      root_cause:
+        type: symbol
+        values:
+          - dns_failure
+          - network_failure
+          - tls_failure
+          - web_service_failure
+          - database_dependency
+          - directory_dependency
+      explained_root_cause:
+        type: symbol
+        values:
+          - DNS
+          - NETWORK
+          - TLS_CERT
+          - WEB_SERVICE
+          - DATABASE
+          - DIRECTORY

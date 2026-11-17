@@ -1,0 +1,62 @@
+# The case where all three collapses give different answers.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# Three mounts: srv-data available, srv-logs and srv-cache unavailable.
+#
+#   every  false -- srv-data is fine, so R001 does not fire
+#   some   true  -- R002 fires, degraded
+#   at_least 2   true  -- R003 fires, storage_fault
+#
+# So `startable` is never concluded, `degraded` and `storage_fault` are both
+# true, and two rules fire.
+#
+# This experiment exists because without it `{at_least: N}` is a capability
+# no pack uses -- which is the shape this repository keeps finding in its own
+# work, and had already found twice this week.
+
+experiment:
+  id: unit-reach-003-counted
+  description: >-
+    A unit degraded by one missing filesystem out of three, concluded by
+    traversing a declared relationship rather than by enumerating mounts.
+  pack: model-packs/unit-dependency-reach
+
+  given:
+    entities:
+      - id: web
+        type: unit
+        properties:
+          - name: startable
+          - name: degraded
+          - name: storage_fault
+      - id: srv-data
+        type: mount
+        properties:
+          - name: available
+            value: true
+      - id: srv-logs
+        type: mount
+        properties:
+          - name: available
+            value: false
+      - id: srv-cache
+        type: mount
+        properties:
+          - name: available
+            value: false
+
+    relationships:
+      - { id: M1, type: mounts, from: web, to: srv-data }
+      - { id: M2, type: mounts, from: web, to: srv-logs }
+      - { id: M3, type: mounts, from: web, to: srv-cache }
+
+  expect:
+    properties:
+      - subject: web.degraded
+        value: true
+        status: INFERRED
+      - subject: web.storage_fault
+        value: true
+        status: INFERRED
+    rules_fired: 2

@@ -1,0 +1,18 @@
+[package]
+name = "dre-evidence"
+description = "Phase 5: evidence reasoning. Provenance, source reliability, freshness, and deterministic conflict resolution."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

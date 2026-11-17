@@ -1,0 +1,6 @@
+goals:
+  - id: CASE_READY
+    conditions:
+      - subject: artifact-1.case_ready
+        operator: EQ
+        operand: true

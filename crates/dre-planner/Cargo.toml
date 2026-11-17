@@ -1,0 +1,23 @@
+[package]
+name = "dre-planner"
+description = "Phases 8-9: constraint engine, goal model, and deterministic search over action sequences."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-model = { workspace = true }
+dre-proof = { workspace = true }
+dre-symbolic = { workspace = true }
+dre-causal = { workspace = true }
+dre-geometry = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,35 @@
+space:
+  subject: server
+  classify_into: posture_region
+  inside_region_into: within_posture_region
+  boundary_distance_into: posture_margin
+  dimensions:
+    - id: crypto_score
+      weight: 3
+    - id: exposure_score
+      weight: 1
+
+regions:
+  - id: hardened
+    centroid:
+      crypto_score: 64
+      exposure_score: 10
+    bounds:
+      crypto_score: { min: 0, max: 256 }
+      exposure_score: { min: 0, max: 30 }
+
+  - id: managed_edge
+    centroid:
+      crypto_score: 0
+      exposure_score: 60
+    bounds:
+      crypto_score: { min: -32, max: 128 }
+      exposure_score: { min: 20, max: 90 }
+
+  - id: legacy_exposed
+    centroid:
+      crypto_score: -96
+      exposure_score: 120
+    bounds:
+      crypto_score: { min: -256, max: -1 }
+      exposure_score: { min: 80, max: 200 }

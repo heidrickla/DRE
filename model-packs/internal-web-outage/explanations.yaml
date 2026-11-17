@@ -1,0 +1,138 @@
+observations:
+  - id: outage_reported
+    description: A user reports that the internal application is unavailable.
+    when:
+      subject: incident.user_reports_unavailable
+      operator: EQ
+      operand: true
+  - id: dns_failed
+    description: DNS answered but did not resolve the application name.
+    when:
+      subject: incident.name_resolution_status
+      operator: EQ
+      operand: failed
+  - id: dns_ok
+    description: DNS resolution appears healthy.
+    when:
+      subject: incident.name_resolution_status
+      operator: EQ
+      operand: ok
+  - id: network_failed
+    description: The host or HTTPS port is not reachable.
+    when:
+      any:
+        - subject: incident.network_path_status
+          operator: EQ
+          operand: host_unreachable
+        - subject: incident.network_path_status
+          operator: EQ
+          operand: port_blocked
+  - id: network_ok
+    description: The host and HTTPS port are reachable.
+    when:
+      subject: incident.network_path_status
+      operator: EQ
+      operand: ok
+  - id: tls_bad
+    description: A completed TLS probe found certificate trouble.
+    when:
+      any:
+        - subject: incident.tls_status
+          operator: EQ
+          operand: certificate_bad
+        - subject: incident.tls_status
+          operator: EQ
+          operand: expiring_soon
+  - id: tls_ok
+    description: A completed TLS probe found no certificate issue.
+    when:
+      subject: incident.tls_status
+      operator: EQ
+      operand: ok
+  - id: tls_no_answer
+    description: TLS inspection produced no answer.
+    when:
+      subject: incident.tls_status
+      operator: EQ
+      operand: no_answer
+  - id: app_server_error
+    description: The application is reachable but returns a server-side failure.
+    when:
+      subject: incident.web_status
+      operator: EQ
+      operand: unhealthy
+  - id: db_unreachable
+    description: The application cannot connect to the database.
+    when:
+      subject: incident.db_connectivity_ok
+      operator: EQ
+      operand: false
+  - id: db_lag_high
+    description: Database replication lag is above the operating threshold.
+    when:
+      subject: incident.db_lag_margin
+      operator: GT
+      operand: {fixed: "0"}
+  - id: ldap_failed
+    description: LDAP bind fails.
+    when:
+      subject: incident.ldap_bind_ok
+      operator: EQ
+      operand: false
+  - id: ad_lag_high
+    description: Directory replication lag is above the authentication threshold.
+    when:
+      subject: incident.ad_lag_margin
+      operator: GT
+      operand: {fixed: "0"}
+  - id: auth_error_seen
+    description: Users receive authentication errors while trying to reach the app.
+    when:
+      subject: incident.auth_error_seen
+      operator: EQ
+      operand: true
+
+hypotheses:
+  - id: DNS
+    description: The application is unavailable because clients cannot resolve it.
+    mechanisms:
+      - id: dns_lookup_failure
+        explains: [outage_reported, dns_failed]
+
+  - id: NETWORK
+    description: The application is unavailable because the route or port is blocked.
+    mechanisms:
+      - id: path_failure
+        explains: [outage_reported, network_failed]
+
+  - id: TLS_CERT
+    description: The application is unavailable because TLS negotiation fails on certificate state.
+    mechanisms:
+      - id: certificate_failure
+        explains: [outage_reported, tls_bad]
+
+  - id: WEB_SERVICE
+    description: The web tier itself is failing while its dependencies are healthy.
+    mechanisms:
+      - id: app_process_failure
+        explains: [outage_reported, app_server_error]
+      - id: dependencies_clear
+        explains: [dns_ok, network_ok, tls_ok]
+
+  - id: DATABASE
+    description: The web tier is up far enough to answer, but its database dependency is unhealthy.
+    mechanisms:
+      - id: database_unreachable
+        explains: [outage_reported, db_unreachable]
+      - id: database_replication_delay
+        explains: [db_lag_high]
+
+  - id: DIRECTORY
+    description: The application depends on directory authentication that is unavailable or stale.
+    mechanisms:
+      - id: directory_bind_failure
+        explains: [outage_reported, ldap_failed]
+      - id: directory_replication_delay
+        explains: [ad_lag_high, auth_error_seen]
+
+rank_into: incident.explained_root_cause

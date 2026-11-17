@@ -1,0 +1,80 @@
+# The same evidence, the author's answer.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# Identical to web-outage-003 in every respect except that `dns_ok`,
+# `network_ok` and `tls_ok` declare `needs_explaining: false`.
+#
+# On -003 the engine returns WEB_SERVICE, because a mechanism called
+# `dependencies_clear` earns 1.75 of coverage for accounting for those three
+# healthy findings while DATABASE is charged 1.00 for leaving them
+# unexplained. The pack's author predicted DATABASE and was right about the
+# domain.
+#
+# With the three declared as negative findings, `dependencies_clear` earns
+# nothing and nobody is charged for ignoring them. DATABASE should win.
+#
+#   expected: explained_root_cause = DATABASE
+#
+# `dns_ok` must still CONTRADICT the DNS hypothesis -- that is what a
+# negative finding is for, and losing it would trade one defect for another.
+
+experiment:
+  id: web-outage-004-findings
+  description: Follow-up case where directory evidence is healthy and database evidence remains bad.
+  pack: model-packs/internal-web-outage-findings
+
+  given:
+    now: 1000
+    entities:
+      - id: incident-003
+        type: incident
+        properties:
+          - name: user_reports_unavailable
+            value: true
+            status: KNOWN
+          - name: dns_query_answered
+            value: true
+            status: KNOWN
+          - name: dns_resolves_app
+            value: true
+            status: KNOWN
+          - name: app_ip_reachable
+            value: true
+            status: KNOWN
+          - name: tcp_443_open
+            value: true
+            status: KNOWN
+          - name: tls_probe_answered
+            value: true
+            status: KNOWN
+          - name: tls_cert_valid
+            value: true
+            status: KNOWN
+          - name: cert_days_remaining
+            value: 120
+            status: KNOWN
+          - name: http_status_class
+            value: server_error
+            status: KNOWN
+          - name: db_connectivity_ok
+            value: false
+            status: KNOWN
+          - name: db_replica_lag_seconds
+            value: 600
+            status: KNOWN
+          - name: ldap_bind_ok
+            value: true
+            status: KNOWN
+          - name: ad_replication_lag_seconds
+            value: 20
+            status: KNOWN
+          - name: auth_error_seen
+            value: false
+            status: KNOWN
+
+  expect:
+    properties:
+      - subject: incident-003.explained_root_cause
+        value: DATABASE
+        status: INFERRED

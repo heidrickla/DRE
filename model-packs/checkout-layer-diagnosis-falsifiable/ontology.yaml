@@ -1,0 +1,68 @@
+entities:
+  incident:
+    properties:
+      checkout_error_rate_pct:
+        type: fixed
+      checkout_error_rate_excess_pct:
+        type: fixed
+      api_p95_ms:
+        type: integer
+        min: 0
+      api_baseline_p95_ms:
+        type: integer
+        min: 0
+      api_p95_delta_ms:
+        type: fixed
+      db_p95_ms:
+        type: integer
+        min: 0
+      db_baseline_p95_ms:
+        type: integer
+        min: 0
+      db_p95_delta_ms:
+        type: fixed
+      app_pool_wait_pct:
+        type: fixed
+      lb_app2_retry_share_pct:
+        type: fixed
+      app2_health_flaps_10m:
+        type: integer
+        min: 0
+      datastore_write_p95_ms:
+        type: integer
+        min: 0
+      datastore_baseline_write_p95_ms:
+        type: integer
+        min: 0
+      datastore_write_delta_ms:
+        type: fixed
+      db_lock_wait_ms:
+        type: integer
+        min: 0
+      hypervisor_cpu_ready_pct:
+        type: fixed
+      checkout_error_rate_high:
+        type: boolean
+      api_p95_high:
+        type: boolean
+      db_p95_high:
+        type: boolean
+      app_pool_wait_high:
+        type: boolean
+      lb_retry_skew_to_app2:
+        type: boolean
+      single_node_health_flapping:
+        type: boolean
+      datastore_write_latency_high:
+        type: boolean
+      db_lock_wait_high:
+        type: boolean
+      hypervisor_cpu_ready_high:
+        type: boolean
+      root_cause:
+        type: symbol
+        values:
+          - APP_NODE_GC_OR_LOCAL_STALL
+          - DATABASE_LOCK_CONTENTION
+          - LOAD_BALANCER_HEALTHCHECK_DRIFT
+          - SHARED_STORAGE_STALL

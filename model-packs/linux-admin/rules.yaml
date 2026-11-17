@@ -1,0 +1,167 @@
+rules:
+  - id: R001
+    description: A failure in the last 30 logical ticks is recent.
+    if:
+      - subject: unit.last_failure_age
+        operator: LTE
+        operand: {fixed: "30"}
+    infer:
+      - subject: unit.recent_failure
+        value: true
+    priority: 10
+
+  - id: R002
+    description: A failure older than 120 logical ticks is not recent.
+    if:
+      - subject: unit.last_failure_age
+        operator: GT
+        operand: {fixed: "120"}
+    infer:
+      - subject: unit.recent_failure
+        value: false
+    priority: 10
+
+  - id: R003
+    description: A configured mount that is not active blocks a required path.
+    if:
+      - subject: unit.fstab_entry_present
+        operator: EQ
+        operand: true
+      - subject: unit.mount_active
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.required_mount_unavailable
+        value: true
+    priority: 20
+
+  - id: R004
+    description: An enabled unit without its package-installed files has a failed dependency surface.
+    if:
+      - subject: unit.unit_enabled
+        operator: EQ
+        operand: true
+      - subject: unit.package_installed
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.dependency_failed
+        value: true
+    priority: 20
+
+  - id: R005
+    description: A required kernel module that is not loaded blocks startup.
+    if:
+      - subject: unit.module_required
+        operator: EQ
+        operand: true
+      - subject: unit.module_loaded
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.module_blocked
+        value: true
+    priority: 20
+
+  - id: R006
+    description: Invalid configuration is represented as a startup blocker.
+    if:
+      - subject: unit.config_valid
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.config_invalid
+        value: true
+    priority: 20
+
+  - id: R007
+    description: Three or more independent pressure surfaces suggest the boot target itself is blocked.
+    if:
+      - subject: unit.pressure_score
+        operator: GTE
+        operand: {fixed: "3"}
+    infer:
+      - subject: unit.default_target_blocked
+        value: true
+    priority: 30
+
+  - id: R008
+    description: Mount, package, or target failure affects the unit's critical chain.
+    if:
+      - any:
+          - subject: unit.required_mount_unavailable
+            operator: EQ
+            operand: true
+          - subject: unit.dependency_failed
+            operator: EQ
+            operand: true
+          - subject: unit.default_target_blocked
+            operator: EQ
+            operand: true
+    infer:
+      - subject: unit.critical_chain_affected
+        value: true
+    priority: 40
+
+  - id: R009
+    description: An enabled unit with a critical-chain, module, or configuration blocker is not startable.
+    if:
+      - subject: unit.unit_enabled
+        operator: EQ
+        operand: true
+      - any:
+          - subject: unit.critical_chain_affected
+            operator: EQ
+            operand: true
+          - subject: unit.module_blocked
+            operator: EQ
+            operand: true
+          - subject: unit.config_invalid
+            operator: EQ
+            operand: true
+    infer:
+      - subject: unit.service_not_startable
+        value: true
+    priority: 50
+
+  - id: R010
+    description: A recently failed unit that is not startable is currently failed.
+    if:
+      - subject: unit.service_not_startable
+        operator: EQ
+        operand: true
+      - subject: unit.recent_failure
+        operator: EQ
+        operand: true
+    infer:
+      - subject: unit.likely_state
+        value: failed
+    priority: 60
+
+  - id: R011
+    description: A not-startable unit with an old failure is blocked but not freshly failed.
+    if:
+      - subject: unit.service_not_startable
+        operator: EQ
+        operand: true
+      - subject: unit.recent_failure
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.likely_state
+        value: blocked
+    priority: 60
+
+  - id: R012
+    description: Multiple pressure surfaces on a failed unit require manual repair.
+    if:
+      - subject: unit.likely_state
+        operator: EQ
+        operand: failed
+      - subject: unit.pressure_score
+        operator: GTE
+        operand: {fixed: "2"}
+    infer:
+      - subject: unit.manual_repair_required
+        value: true
+    priority: 70

@@ -1,0 +1,158 @@
+# Prediction recorded before execution.
+# Expected asserted properties:
+# - case-2.path_a_cost = fixed 25.000000, INFERRED.
+# - case-2.path_b_cost = fixed 14.000000, INFERRED.
+# - case-2.cost_delta = fixed 11.000000, INFERRED.
+# - case-2.selected_path = path_b, INFERRED.
+# - case-2.acl_decision = permit, KNOWN, because two independent permit
+#   observations meet the corroboration threshold; the single deny observation
+#   does not.
+# - case-2.policy_state = allowed, INFERRED.
+# - case-2.path_health = blocked, INFERRED.
+# - case-2.delivery_state = blackholed, INFERRED.
+# - case-2.investigation_required = true, INFERRED.
+# - case-2.diagnosis is where I expect trouble: I predict no value/UNKNOWN
+#   because ROUTING_BLACKHOLE and STP_BLOCK appear to tie exactly under the
+#   documented scoring, and the brief says rank_into is written only when the
+#   leader strictly outscores the runner-up.
+# Expected rules to fire: R001, R002, R004, R009, R013, R017, R019.
+# Expected explanation scores by hand:
+# - ACL_BLOCK: telemetry supported, acl_denies_flow contradicted, route_selected,
+#   policy_allows_flow, and stp_blocks_forwarding unexplained; approximately
+#   1.00 - 2.00 - 0.75 - 0.05 = -1.80.
+# - ROUTING_BLACKHOLE: route_selected and telemetry_drops in one mechanism are
+#   supported; policy_allows_flow and stp_blocks_forwarding unexplained;
+#   approximately 1.25 - 0.50 - 0.05 = 0.70.
+# - STP_BLOCK: stp_blocks_forwarding and telemetry_drops in one mechanism are
+#   supported; policy_allows_flow and route_selected unexplained; approximately
+#   1.25 - 0.50 - 0.05 = 0.70.
+# - PHYSICAL_DEGRADATION: telemetry_drops supported but high_link_errors false;
+#   three other holding observations unexplained; approximately
+#   1.00 - 2.00 - 0.75 - 0.05 = -1.80.
+# Least certain: the brief both says explanation ordering is total and later
+# says an exact tie reports no preferred explanation. I trust the strict
+# rank_into sentence more for the state property, but I would not be surprised
+# if the engine writes ROUTING_BLACKHOLE by identifier tiebreak. If it does,
+# I think that is a wrong domain answer because STP blocking is more specific
+# evidence than generic "selected route drops"; the scoring cannot express that.
+experiment:
+  id: network-002-competing-explanations
+  description: ACL evidence mostly permits, route selects path B, STP blocks, and telemetry reports drops.
+  pack: model-packs/network-forwarding-policy
+
+  given:
+    now: 2000
+    entities:
+      - id: case-2
+        type: network_case
+        properties:
+          - name: a_core_cost
+            value: 15
+            status: KNOWN
+          - name: a_edge_cost
+            value: 10
+            status: KNOWN
+          - name: b_core_cost
+            value: 8
+            status: KNOWN
+          - name: b_edge_cost
+            value: 6
+            status: KNOWN
+          - name: adjacency_a_state
+            value: up
+            status: KNOWN
+          - name: adjacency_b_state
+            value: up
+            status: KNOWN
+          - name: stp_state
+            value: blocking
+            status: KNOWN
+          - name: mtu_ok
+            value: true
+            status: KNOWN
+          - name: link_error_rate
+            value: {fixed: "0.1"}
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: firewall-active
+        reliability: 940
+        independence_group: firewall-a
+      - id: firewall-standby
+        reliability: 920
+        independence_group: firewall-b
+      - id: siem-normalizer
+        reliability: 850
+        independence_group: siem
+      - id: flow-monitor
+        reliability: 910
+        independence_group: telemetry-a
+      - id: span-capture
+        reliability: 880
+        independence_group: telemetry-b
+
+    evidence:
+      - id: E101
+        subject: case-2
+        predicate: acl_decision
+        value: permit
+        source: firewall-active
+        reliability: 900
+        observed_at: 1995
+      - id: E102
+        subject: case-2
+        predicate: acl_decision
+        value: permit
+        source: firewall-standby
+        reliability: 900
+        observed_at: 1996
+      - id: E103
+        subject: case-2
+        predicate: acl_decision
+        value: deny
+        source: siem-normalizer
+        reliability: 820
+        observed_at: 1997
+      - id: E104
+        subject: case-2
+        predicate: telemetry_drop_seen
+        value: true
+        source: flow-monitor
+        reliability: 900
+        observed_at: 1998
+      - id: E105
+        subject: case-2
+        predicate: telemetry_drop_seen
+        value: true
+        source: span-capture
+        reliability: 860
+        observed_at: 1999
+
+  expect:
+    properties:
+      - subject: case-2.acl_decision
+        value: permit
+        status: KNOWN
+      - subject: case-2.selected_path
+        value: path_b
+        status: INFERRED
+      - subject: case-2.policy_state
+        value: allowed
+        status: INFERRED
+      - subject: case-2.path_health
+        value: blocked
+        status: INFERRED
+      - subject: case-2.delivery_state
+        value: blackholed
+        status: INFERRED
+      - subject: case-2.investigation_required
+        value: true
+        status: INFERRED
+      - subject: case-2.diagnosis
+        status: UNKNOWN
+    rules_fired: 7

@@ -1,0 +1,10 @@
+{
+  "experiment": "unit-reach-003-counted",
+  "input": "3cd4ce2d4944ee8fc7eec556c9f56f66d60cc8dea5c069d78eb724b385f85c8d",
+  "model": "77764ce0185fe84a49e8c8b5a8686005d6ae28934d55778e24ee4d7b2b3511fc",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "88ec710c18e539e0968b7b95bb3cc435d975bae8b41cbf454322de9abe2ff3ae",
+  "proof": "0f0aa498a7831083511c44e40551eb05d6c5e37126422dbc510417fbc4dca2bb",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

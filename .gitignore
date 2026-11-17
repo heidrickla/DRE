@@ -1,0 +1,42 @@
+# Rust build output
+/target/
+**/*.rs.bk
+
+# Experiment output. Replay records that matter are committed deliberately
+# under experiments/, never swept in from a local run.
+/out/
+/results/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+
+# Benchmark archives. Deliberately not committed, unlike replay records: a
+# decision hash is a claim anyone can check, a timing is a property of one
+# machine on one afternoon. Committing them would lend a number authority
+# it has not got, and two rows from different hosts are not comparable
+# anyway. See crates/dre-lab/src/bench.rs.
+/experiments/benchmarks/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment
+.env
+.env.local
+
+# Files written for or by coding agents do not ship
+CLAUDE.md
+AGENTS.md
+MEMORY.md
+memory.md
+CONTRIBUTING.md
+.cursorrules
+.claude/
+.mcp.json

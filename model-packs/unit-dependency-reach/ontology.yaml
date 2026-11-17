@@ -1,0 +1,25 @@
+entities:
+  unit:
+    properties:
+      startable:
+        type: boolean
+      degraded:
+        type: boolean
+      storage_fault:
+        type: boolean
+
+  mount:
+    properties:
+      available:
+        type: boolean
+
+relationships:
+  # A unit may mount several filesystems, and a filesystem may be mounted by
+  # several units. Both sides `many`, which is the weakest claim and the
+  # default -- stated here because the pack means it rather than because it
+  # had to be written.
+  mounts:
+    from: unit
+    to: mount
+    targets_per_source: many
+    sources_per_target: many

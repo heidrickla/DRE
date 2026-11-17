@@ -1,0 +1,8 @@
+model:
+  id: industrial-switch-diagnosis
+  version: 0.1.0
+  requires_engine: 0.7.0
+  description: >-
+    Fault diagnosis for a managed Ethernet switch where chassis-wide link
+    instability can arise from DC input power, thermal, control-plane, or
+    uplink optical conditions.

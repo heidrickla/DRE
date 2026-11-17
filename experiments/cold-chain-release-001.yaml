@@ -1,0 +1,116 @@
+experiment:
+  id: cold-chain-release-001
+  description: Straightforward clean shipment should qualify for routine authorization.
+  pack: model-packs/cold-chain-release
+
+  given:
+    now: 1000
+    entities:
+      - id: shipment
+        type: shipment
+        properties:
+          - name: declared_weight_kg
+            value: {fixed: "100"}
+            status: KNOWN
+          - name: measured_weight_kg
+            value: {fixed: "102"}
+            status: KNOWN
+          - name: target_temp_c
+            value: {fixed: "4"}
+            status: KNOWN
+          - name: delay_minutes
+            value: 60
+            status: KNOWN
+          - name: sla_minutes
+            value: 120
+            status: KNOWN
+          - name: documents_complete
+            value: true
+            status: KNOWN
+          - name: docs_verified
+            value: true
+            status: KNOWN
+          - name: custody_verified
+            value: true
+            status: KNOWN
+          - name: inspection_complete
+            value: false
+            status: KNOWN
+          - name: override_used
+            value: false
+            status: KNOWN
+          - name: release_authorized
+            value: false
+            status: KNOWN
+          - name: manual_review_required
+            value: false
+            status: KNOWN
+          - name: quarantine_required
+            value: false
+            status: KNOWN
+          - name: temp_inspection_required
+            value: false
+            status: KNOWN
+          - name: custody_audit_required
+            value: false
+            status: KNOWN
+          - name: recovery_required
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: probe-a
+        reliability: 930
+        independence_group: probe-a-group
+      - id: probe-b
+        reliability: 910
+        independence_group: probe-b-group
+
+    evidence:
+      - id: E001
+        subject: shipment
+        predicate: cargo_temp_c
+        value: {fixed: "4.5"}
+        source: probe-a
+        reliability: 920
+        observed_at: 995
+      - id: E002
+        subject: shipment
+        predicate: cargo_temp_c
+        value: {fixed: "4.5"}
+        source: probe-b
+        reliability: 900
+        observed_at: 996
+
+  expect:
+    properties:
+      - subject: shipment.temperature_status
+        value: normal
+        status: INFERRED
+      - subject: shipment.weight_status
+        value: match
+        status: INFERRED
+      - subject: shipment.delay_status
+        value: on-time
+        status: INFERRED
+      - subject: shipment.standard_release_eligible
+        value: true
+        status: INFERRED
+      # The author's original expectation here was
+      #   - subject: shipment.release_authorized
+      #     value: true
+      # which asserts the world *after* the plan has been carried out. The
+      # planner does not carry plans out: it searches over a copy of the
+      # state and returns a sequence, so this property still holds its
+      # pre-plan value and the expectation could never pass.
+      #
+      # Corrected to assert the plan, which is what the expectation meant
+      # and is the stronger claim -- it names the actions and their order,
+      # not merely how many there are.
+    plan:
+      - STANDARD_AUTHORIZE

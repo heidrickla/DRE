@@ -1,0 +1,259 @@
+experiment:
+  id: vm-host-004-unpaired-promotes-a-winner
+  description: >-
+    The case the count review said would reopen the join, constructed
+    deliberately.
+
+    `vm-host-003` showed the unpaired conjunction in `R025` firing wrongly, but
+    its effect there was to suppress every account rather than promote one:
+    HOST_CPU_CONTENTION finished last, killed by two contradictions, and the
+    phantom `host_cpu_path` landed as *unexplained* against the rest. The
+    review was explicit that this did not settle the question, and that what
+    would reopen it is a domain where the unpaired conjunction promotes a
+    wrong winner.
+
+    This is that domain. Two VMs are degraded with genuine guest CPU wait, and
+    both run on a host with nothing wrong with it. A third VM sits on a
+    saturated host and is perfectly healthy. So:
+
+      app_degradation_present  true   (vm-one, vm-two)
+      multi_vm_symptoms        true   (two degraded)
+      guest_wait_symptoms      true   (vm-one, vm-two)
+      host_cpu_path            true   ONLY because R025 pairs "some VM is
+                                      degraded" with "some VM is exposed", and
+                                      the exposed one is the healthy vm-three
+
+    All four observations HOST_CPU_CONTENTION explains are then supported, with
+    nothing contradicting it.
+
+    PREDICTION, written before running, and confirmed exactly: under 0.20.0
+    HOST_CPU_CONTENTION won at 1.700000 — coverage 1.750000 over four
+    supported observations, zero contradicted — while being wrong about the
+    domain. That result is what earned `Reach.also` in 0.21.0.
+
+    WHAT CHANGED, in two steps and by two different hands.
+
+    First, `Reach.also` in 0.21.0. R025 and R026 now require one VM to be both
+    degraded and host-exposed, so `host_cpu_path` is correctly **false** here.
+    HOST_CPU_CONTENTION fell from 1.700000 to -0.550000 and carried an
+    explicit contradiction — but it still led, because no account in the pack
+    covered the actual situation.
+
+    I recorded that residue as a missing hypothesis and declined to fix it, on
+    the grounds that authoring one would be modelling on an external author's
+    behalf. That diagnosis was wrong. Sent back for independent review with
+    only the pack and the raw situation, a reviewer found the real cause: the
+    problem was not a missing account but HOST_CPU_CONTENTION **claiming too
+    much**. Its mechanism explained `app_degradation_present` and
+    `multi_vm_symptoms`, which are generic incident symptoms that any account
+    would produce, so it collected credit for them wherever an incident was
+    live at all.
+
+    Deleting those two lines is the whole fix. The account is now scored on
+    what it specifically explains — guest wait and a paired host CPU path —
+    and this experiment concludes GUEST_OS_CPU_BUG, which is right: two VMs
+    with local guest CPU wait on a host with nothing wrong with it.
+    `-002` still concludes HOST_CPU_CONTENTION, where the pairing is genuine.
+
+  pack: model-packs/vm-host-fault-domain
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: host-quiet
+        type: host
+      - id: host-saturated
+        type: host
+      - id: vm-one
+        type: vm
+      - id: vm-two
+        type: vm
+      - id: vm-three
+        type: vm
+      - id: incident-1
+        type: incident
+
+    relationships:
+      # The two failing VMs are on the host with nothing wrong with it.
+      - { id: R-one-host, type: runs_on, from: vm-one, to: host-quiet }
+      - { id: R-two-host, type: runs_on, from: vm-two, to: host-quiet }
+      # The healthy VM is the only one actually exposed to host CPU saturation.
+      - { id: R-three-host, type: runs_on, from: vm-three, to: host-saturated }
+      - { id: R-incident-one, type: incident_scope, from: incident-1, to: vm-one }
+      - { id: R-incident-two, type: incident_scope, from: incident-1, to: vm-two }
+      - { id: R-incident-three, type: incident_scope, from: incident-1, to: vm-three }
+
+    sources:
+      - id: hypervisor
+        reliability: 900
+        independence_group: vcenter
+      - id: one-agent
+        reliability: 850
+        independence_group: one-guest
+      - id: two-agent
+        reliability: 850
+        independence_group: two-guest
+      - id: three-agent
+        reliability: 850
+        independence_group: three-guest
+
+    evidence:
+      # The quiet host: nothing wrong with it.
+      - id: E001
+        subject: host-quiet
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "9"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E002
+        subject: host-quiet
+        predicate: datastore_latency_ms
+        value: {fixed: "6"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: host-quiet
+        predicate: nic_loss_ppm
+        value: 11
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+
+      # The saturated host, carrying only the healthy VM.
+      - id: E004
+        subject: host-saturated
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "96"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E005
+        subject: host-saturated
+        predicate: datastore_latency_ms
+        value: {fixed: "7"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E006
+        subject: host-saturated
+        predicate: nic_loss_ppm
+        value: 12
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+
+      # vm-one: degraded, with real guest CPU wait, on the quiet host.
+      - id: E007
+        subject: vm-one
+        predicate: app_errors_per_min
+        value: 34
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+      - id: E008
+        subject: vm-one
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "92"}
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+      - id: E009
+        subject: vm-one
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+
+      # vm-two: the same, so multi_vm_symptoms holds.
+      - id: E010
+        subject: vm-two
+        predicate: app_errors_per_min
+        value: 31
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+      - id: E011
+        subject: vm-two
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "85"}
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+      - id: E012
+        subject: vm-two
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "18"}
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+
+      # vm-three: host-exposed and entirely healthy. It supplies the second
+      # half of R025's conjunction and nothing else.
+      - id: E013
+        subject: vm-three
+        predicate: app_errors_per_min
+        value: 1
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+      - id: E014
+        subject: vm-three
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "22"}
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+      - id: E015
+        subject: vm-three
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+
+  expect:
+    properties:
+      # The pairing is broken exactly as intended.
+      - subject: vm-one.app_degraded
+        value: true
+        status: INFERRED
+      - subject: vm-one.host_cpu_exposure
+        value: false
+        status: INFERRED
+      - subject: vm-three.app_degraded
+        value: false
+        status: INFERRED
+      - subject: vm-three.host_cpu_exposure
+        value: true
+        status: INFERRED
+
+      # All four observations the host account rests on.
+      - subject: incident-1.app_degradation_present
+        value: true
+        status: INFERRED
+      - subject: incident-1.multi_vm_symptoms
+        value: true
+        status: INFERRED
+      - subject: incident-1.guest_wait_symptoms
+        value: true
+        status: INFERRED
+      # Paired since 0.21.0: no scoped VM is both, so this is now false
+      # rather than the phantom `true` that produced the wrong winner.
+      - subject: incident-1.host_cpu_path
+        value: false
+        status: INFERRED
+
+      # The correct answer, reached only after the host account stopped
+      # claiming the two generic observations. GUEST_OS_CPU_BUG leads at
+      # -1.050000; HOST_CPU_CONTENTION falls to -1.550000.
+      - subject: incident-1.root_cause
+        value: GUEST_OS_CPU_BUG
+        status: INFERRED

@@ -1,0 +1,61 @@
+# R001 is the worked example from plan section 10.
+#
+# R002 is deliberately more specific than R003 at the same priority, so the
+# pack exercises specificity ordering rather than only priority. Their
+# relative order is fixed by the engine, not by their order in this file.
+
+rules:
+  - id: R001
+    description: High temperature with high vibration indicates a bearing fault.
+    if:
+      - subject: machine.temperature
+        operator: GT
+        operand: 800
+      - subject: machine.vibration
+        operator: GT
+        operand: 700
+    infer:
+      - subject: machine.bearing_fault
+        value: true
+    priority: 100
+
+  - id: R002
+    description: A bearing fault with normal pressure narrows the mode to wear.
+    if:
+      - subject: machine.bearing_fault
+        operator: EQ
+        operand: true
+      - subject: machine.pressure
+        operator: GTE
+        operand: 300
+      - subject: machine.pressure
+        operator: LTE
+        operand: 500
+    infer:
+      - subject: machine.failure_mode
+        value: bearing-wear
+    priority: 200
+
+  - id: R003
+    description: A bearing fault alone is at least a degraded machine.
+    if:
+      - subject: machine.bearing_fault
+        operator: EQ
+        operand: true
+    infer:
+      - subject: machine.condition
+        value: degraded
+    priority: 200
+
+  - id: R010
+    description: >-
+      The internal state is unobservable, so nothing may conclude from it.
+      This rule exists to prove the engine never fires on an unobservable
+      property -- it would fire if UNOBSERVABLE were treated as a value.
+    if:
+      - subject: machine.internal_state
+        operator: KNOWN
+    infer:
+      - subject: machine.inspected_internally
+        value: true
+    priority: 300

@@ -1,0 +1,137 @@
+# Prediction recorded before execution:
+# Expected asserted properties:
+# - web.mount_active resolves to false from two independent evidence groups.
+# - web.last_failure_age is INFERRED as fixed 10.
+# - web.recent_failure is INFERRED true.
+# - web.required_mount_unavailable, critical_chain_affected, service_not_startable are INFERRED true.
+# - web.likely_state is INFERRED failed.
+# - web.manual_repair_required is not expected to be inferred because pressure_score is only 1.
+# - web.root_cause is expected to be INFERRED MOUNT_PROBLEM.
+# Expected rules to fire: R001, R003, R008, R009, R010.
+# Expected features to compute: F001 and F002.
+# Least certain: whether explanations write rank_into with INFERRED status, and whether
+# explanation ranking is run by `dre run` or only by `dre explain`.
+experiment:
+  id: linux-admin-001-mount
+  description: A straightforward mount dependency failure for an enabled systemd unit.
+  pack: model-packs/linux-admin
+
+  given:
+    now: 1000
+    entities:
+      - id: web
+        type: unit
+        properties:
+          - name: boot_tick
+            value: 1000
+            status: KNOWN
+          - name: failure_tick
+            value: 990
+            status: KNOWN
+          - name: mount_pressure
+            value: {fixed: "1"}
+            status: KNOWN
+          - name: package_pressure
+            value: {fixed: "0"}
+            status: KNOWN
+          - name: module_pressure
+            value: {fixed: "0"}
+            status: KNOWN
+          - name: config_pressure
+            value: {fixed: "0"}
+            status: KNOWN
+          - name: unit_enabled
+            value: true
+            status: KNOWN
+          - name: unit_active
+            value: false
+            status: KNOWN
+          - name: fstab_entry_present
+            value: true
+            status: KNOWN
+          - name: package_installed
+            value: true
+            status: KNOWN
+          - name: module_required
+            value: false
+            status: KNOWN
+          - name: module_loaded
+            status: NOT_APPLICABLE
+          - name: config_valid
+            value: true
+            status: KNOWN
+          - name: journal_dependency_error
+            value: true
+            status: KNOWN
+          - name: package_file_missing
+            value: false
+            status: KNOWN
+          - name: kernel_unknown_symbol
+            value: false
+            status: KNOWN
+          - name: permission_denied
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+    sources:
+      - id: systemd
+        reliability: 920
+        independence_group: systemd-state
+      - id: proc-mounts
+        reliability: 900
+        independence_group: kernel-vfs
+      - id: journal
+        reliability: 850
+        independence_group: journal
+    evidence:
+      - id: E001
+        subject: web
+        predicate: mount_active
+        value: false
+        source: systemd
+        reliability: 920
+        observed_at: 998
+      - id: E002
+        subject: web
+        predicate: mount_active
+        value: false
+        source: proc-mounts
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: web
+        predicate: mount_timeout
+        value: true
+        source: journal
+        reliability: 850
+        observed_at: 997
+
+  expect:
+    properties:
+      - subject: web.last_failure_age
+        value: {fixed: "10"}
+        status: INFERRED
+      - subject: web.recent_failure
+        value: true
+        status: INFERRED
+      - subject: web.required_mount_unavailable
+        value: true
+        status: INFERRED
+      - subject: web.critical_chain_affected
+        value: true
+        status: INFERRED
+      - subject: web.service_not_startable
+        value: true
+        status: INFERRED
+      - subject: web.likely_state
+        value: failed
+        status: INFERRED
+      - subject: web.root_cause
+        value: MOUNT_PROBLEM
+        status: INFERRED
+    rules_fired: 5
+    states_expanded: 0

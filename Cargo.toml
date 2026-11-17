@@ -1,0 +1,85 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/dre-core",
+    "crates/dre-state",
+    "crates/dre-evidence",
+    "crates/dre-model",
+    "crates/dre-proof",
+    "crates/dre-symbolic",
+    "crates/dre-geometry",
+    "crates/dre-causal",
+    "crates/dre-explain",
+    "crates/dre-planner",
+    "crates/dre-replay",
+    "crates/dre-lab",
+    "crates/dre-conformance",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT"
+repository = "https://github.com/heidrickla/DRE"
+authors = ["Lewis Heidrick"]
+
+[workspace.dependencies]
+# Internal crates. Kept path-only for the MVP; no crate is published.
+dre-core = { path = "crates/dre-core" }
+dre-state = { path = "crates/dre-state" }
+dre-evidence = { path = "crates/dre-evidence" }
+dre-model = { path = "crates/dre-model" }
+dre-proof = { path = "crates/dre-proof" }
+dre-symbolic = { path = "crates/dre-symbolic" }
+dre-geometry = { path = "crates/dre-geometry" }
+dre-causal = { path = "crates/dre-causal" }
+dre-explain = { path = "crates/dre-explain" }
+dre-planner = { path = "crates/dre-planner" }
+dre-replay = { path = "crates/dre-replay" }
+dre-conformance = { path = "crates/dre-conformance" }
+dre-lab = { path = "crates/dre-lab" }
+
+# External. Deliberately minimal: every dependency is a determinism risk
+# surface, so each addition needs a justification in docs/decisions.md.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# YAML for model packs. Deserialize only -- the engine reads packs but
+# writes snapshots as JSON, so the serialize half and its four transitive
+# dependencies are not pulled in. Chosen over serde_yaml (deprecated, two
+# RUSTSEC advisories) and serde_norway (a fork, but unchanged since
+# 2024-12); see docs/decisions.md.
+serde-saphyr = { version = "1", default-features = false, features = ["deserialize"] }
+blake3 = "1"
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+
+# Determinism is a correctness property here, not a style preference.
+# These lints exist to make the prohibitions in docs/determinism.md
+# mechanically enforced rather than merely documented.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+# Floating point is banned in engine paths: it makes results
+# platform- and optimization-order-dependent. Use dre-core::fixed.
+float_arithmetic = "deny"
+# HashMap/HashSet default to a randomly seeded hasher, so iteration
+# order varies per process. Use dre-core::collections.
+disallowed_types = "deny"
+# Panics in engine paths destroy replayability. Return errors instead.
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+
+[profile.release]
+# Determinism over micro-optimisation. Single codegen unit keeps
+# optimisation decisions stable across builds of the same source.
+codegen-units = 1
+lto = true
+panic = "abort"
+overflow-checks = true
+
+[profile.dev]
+overflow-checks = true

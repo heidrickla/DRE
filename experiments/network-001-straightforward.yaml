@@ -1,0 +1,102 @@
+# Prediction recorded before execution.
+# Expected asserted properties:
+# - case-1.path_a_cost = fixed 15.000000, INFERRED.
+# - case-1.path_b_cost = fixed 30.000000, INFERRED.
+# - case-1.cost_delta = fixed -15.000000, INFERRED.
+# - case-1.selected_path = path_a, INFERRED.
+# - case-1.policy_state = allowed, INFERRED.
+# - case-1.path_health = clean, INFERRED.
+# - case-1.loss_risk = low, INFERRED.
+# - case-1.delivery_state = reachable, INFERRED.
+# - case-1.investigation_required should remain absent or UNKNOWN.
+# Expected rules to fire: R001, R002, R003, R009, R011, R014.
+# Least certain: whether the expect block accepts fixed-point values with
+# trailing zeros exactly as written, and whether a property not written can be
+# asserted as UNKNOWN. I do not assert investigation_required below because the
+# brief does not show a negative/absence expectation form.
+experiment:
+  id: network-001-straightforward
+  description: Lower-cost path A, permitting ACL, forwarding STP, clean link.
+  pack: model-packs/network-forwarding-policy
+
+  given:
+    now: 1000
+    entities:
+      - id: case-1
+        type: network_case
+        properties:
+          - name: a_core_cost
+            value: 10
+            status: KNOWN
+          - name: a_edge_cost
+            value: 5
+            status: KNOWN
+          - name: b_core_cost
+            value: 20
+            status: KNOWN
+          - name: b_edge_cost
+            value: 10
+            status: KNOWN
+          - name: adjacency_a_state
+            value: up
+            status: KNOWN
+          - name: adjacency_b_state
+            value: up
+            status: KNOWN
+          - name: stp_state
+            value: forwarding
+            status: KNOWN
+          - name: mtu_ok
+            value: true
+            status: KNOWN
+          - name: link_error_rate
+            value: {fixed: "0.2"}
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: firewall-a
+        reliability: 930
+        independence_group: firewall-cluster-a
+      - id: firewall-b
+        reliability: 910
+        independence_group: firewall-cluster-b
+
+    evidence:
+      - id: E001
+        subject: case-1
+        predicate: acl_decision
+        value: permit
+        source: firewall-a
+        reliability: 900
+        observed_at: 995
+      - id: E002
+        subject: case-1
+        predicate: acl_decision
+        value: permit
+        source: firewall-b
+        reliability: 880
+        observed_at: 996
+
+  expect:
+    properties:
+      - subject: case-1.selected_path
+        value: path_a
+        status: INFERRED
+      - subject: case-1.policy_state
+        value: allowed
+        status: INFERRED
+      - subject: case-1.path_health
+        value: clean
+        status: INFERRED
+      - subject: case-1.loss_risk
+        value: low
+        status: INFERRED
+      - subject: case-1.delivery_state
+        value: reachable
+        status: INFERRED
+    rules_fired: 6

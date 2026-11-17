@@ -1,0 +1,51 @@
+features:
+  - id: F001
+    subject: host.reboot_flag_pressure
+    description: Each independent pending-reboot indicator adds fixed pressure.
+    expression:
+      multiply:
+        - subject: host.pending_reboot_flags_count
+        - literal: "40.0"
+
+  - id: F002
+    subject: host.patch_age_pressure
+    description: Patch age beyond thirty days increases risk; negative values mean recently patched.
+    expression:
+      subtract:
+        - subject: host.days_since_patch
+        - literal: "30.0"
+
+  - id: F003
+    subject: host.uptime_pressure
+    description: Uptime beyond one week increases operational risk.
+    expression:
+      subtract:
+        - subject: host.uptime_hours
+        - literal: "168.0"
+
+  - id: F004
+    subject: host.ad_risk_score
+    description: Replication failures are amplified because rebooting a lone bad DC can worsen outage.
+    expression:
+      multiply:
+        - subject: host.ad_replication_failures
+        - literal: "75.0"
+
+  - id: F005
+    subject: host.service_risk_score
+    description: Critical service failures are immediate blockers rather than mere patch debt.
+    expression:
+      multiply:
+        - subject: host.critical_service_failures
+        - literal: "60.0"
+
+  - id: F006
+    subject: host.admin_risk_score
+    description: Combined fixed-point score for reboot urgency and explanation context.
+    expression:
+      add:
+        - subject: host.reboot_flag_pressure
+        - subject: host.patch_age_pressure
+        - subject: host.uptime_pressure
+        - subject: host.ad_risk_score
+        - subject: host.service_risk_score

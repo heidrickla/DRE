@@ -1,0 +1,10 @@
+{
+  "experiment": "logic-001",
+  "input": "adc98f78e8a7180b8bbf84d4363a0182fb7b4f22e7f7f944698228d2457d8a36",
+  "model": "363acbcaffb64b802ddf6cdc6e40ef3901fc3a9f297581cdc019cec1054b5b6e",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "58fad795ead5a20663b581bd65c5dd415c4e065c6175f38d8d0451ff41f6891e",
+  "proof": "37e4ff655d386645410f94d021fbac6809d5d986a7c24bd0d08eee3b667243f0",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

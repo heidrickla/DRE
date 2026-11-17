@@ -1,0 +1,70 @@
+actions:
+  - id: OPEN_CHANGE_TICKET
+    description: Open a change record before scheduling a reboot.
+    preconditions:
+      - subject: host.change_ticket_open
+        operator: EQ
+        operand: false
+    effects:
+      host.change_ticket_open:
+        set: true
+    cost: 1
+    reversible: false
+
+  - id: WAIT_FOR_MAINTENANCE_WINDOW
+    description: Wait until an approved maintenance window outside business hours.
+    preconditions:
+      - subject: host.maintenance_window_open
+        operator: EQ
+        operand: false
+    effects:
+      host.maintenance_window_open:
+        set: true
+      host.business_hours:
+        set: false
+    cost: 3
+    reversible: false
+
+  - id: SCHEDULE_REBOOT
+    description: Schedule the reboot after administrative and dependency checks.
+    preconditions:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.change_ticket_open
+        operator: EQ
+        operand: true
+      - subject: host.maintenance_window_open
+        operator: EQ
+        operand: true
+      - subject: host.service_health
+        operator: EQ
+        operand: healthy
+      - any:
+          - subject: host.is_domain_controller
+            operator: EQ
+            operand: false
+          - subject: host.peer_dc_available
+            operator: EQ
+            operand: true
+    effects:
+      host.reboot_scheduled:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: REBOOT_HOST
+    description: Reboot the host. The planner returns this sequence but does not execute it.
+    preconditions:
+      - subject: host.reboot_scheduled
+        operator: EQ
+        operand: true
+    effects:
+      host.reboot_completed:
+        set: true
+      host.reboot_required:
+        set: false
+      host.pending_reboot_flags_count:
+        set: 0
+    cost: 5
+    reversible: false

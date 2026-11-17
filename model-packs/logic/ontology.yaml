@@ -1,0 +1,12 @@
+# DRAFT — see docs/decisions.md.
+
+entities:
+  proposition:
+    properties:
+      holds:
+        type: boolean
+
+relationships:
+  implies:
+    from: proposition
+    to: proposition

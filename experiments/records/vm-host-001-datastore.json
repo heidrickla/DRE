@@ -1,0 +1,10 @@
+{
+  "experiment": "vm-host-001-datastore",
+  "input": "7b00202062c86415cfe9fc8844a8b3e879216be13a3fab5195494da1b98c2b2b",
+  "model": "eb4d70344c159452f7da3faa7e747656e0bb832dc38e3b1781247224452d31ac",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "e4de76c9ab53db4b0549913335a616f2a150bf742b4613fa81316bbf2dda83e9",
+  "proof": "f75fe4861dabba1ba6e3ea63c31c60ab0202cace841f3f9d9abd2fa06b7e35a5",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

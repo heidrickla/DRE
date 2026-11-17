@@ -1,0 +1,50 @@
+# The obstacle wall, expressed with nested NOT/ANY/ALL so the pack
+# exercises the composite condition forms rather than only flat compares.
+
+constraints:
+  - id: C001
+    description: The agent must not occupy an obstacle cell.
+    hard: true
+    conditions:
+      - not:
+          any:
+            - all:
+                - subject: agent.x
+                  operator: EQ
+                  operand: 2
+                - subject: agent.y
+                  operator: EQ
+                  operand: 0
+            - all:
+                - subject: agent.x
+                  operator: EQ
+                  operand: 2
+                - subject: agent.y
+                  operator: EQ
+                  operand: 1
+            - all:
+                - subject: agent.x
+                  operator: EQ
+                  operand: 2
+                - subject: agent.y
+                  operator: EQ
+                  operand: 2
+
+  # A hazard, not a wall. Crossing (3,3) is permitted but costs 5 extra --
+  # so the planner detours around it when a detour is cheaper than 5 steps,
+  # and drives straight through when it is not. A hard constraint cannot
+  # express that trade: it can only forbid the cell however long the
+  # alternative turns out to be.
+  - id: C002
+    description: Avoid the hazard cell unless the detour costs more than crossing it.
+    hard: false
+    penalty: 5
+    conditions:
+      - not:
+          all:
+            - subject: agent.x
+              operator: EQ
+              operand: 3
+            - subject: agent.y
+              operator: EQ
+              operand: 3

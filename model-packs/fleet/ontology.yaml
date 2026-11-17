@@ -1,0 +1,13 @@
+# One type, several instances. That combination is the whole pack: every
+# other pack here has one interesting entity, which is exactly why rules
+# binding to an instance went unnoticed for the whole MVP.
+
+entities:
+  switch:
+    properties:
+      cpu_load:
+        type: integer
+        min: 0
+        max: 100
+      overloaded:
+        type: boolean

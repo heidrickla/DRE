@@ -1,0 +1,10 @@
+{
+  "experiment": "web-outage-002-competing-dependencies",
+  "input": "6e937c70cf3ad4996caed6b4aedd1d12d8793874594d4315597c962db6246ef3",
+  "model": "455f0e559a6aa52ab29e5f0fdfe53526646a3f38fb076b70a83de7624720b817",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "64d4543517748a2312d1d987bc0b7761523c273712b4ffca66862220f9dcdfca",
+  "proof": "006831d2d204930bd5c8fd7744b4cb556a7850c317a505cff5c04f614e8a7ee7",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

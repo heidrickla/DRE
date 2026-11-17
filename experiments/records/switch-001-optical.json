@@ -1,0 +1,10 @@
+{
+  "experiment": "switch-001-optical",
+  "input": "210d54f563bb65612f9917c54044f751162b3f7ac2e29a87d371c7994d4c27cd",
+  "model": "8e65b10c2e457e8caaa7823f1fa90b1994da1f27beef474bbf4ce979d10c96a7",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "b6d7b2e4dd86d141e4bb493c6d0f36c840db07765745c337374bd8042a134f0a",
+  "proof": "0533ce23fc1c9571f30437516db0c62728dce6b7b6817d9cf32e4b12e9996216",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

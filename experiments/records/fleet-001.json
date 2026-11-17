@@ -1,0 +1,10 @@
+{
+  "experiment": "fleet-001",
+  "input": "06357e3745768ac44fcb6058f5db402d2f5b141420a50bc94710f1a9d8bd8c4d",
+  "model": "6987cf47259c510c555794ade71dbe34bc4724f001db5483fe01e8c94aa1e467",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "dfcf83b95353b98523532c0d0a976a3083875b7a7b4464a47edfc5bcab7dada6",
+  "proof": "2d6032036352fe527746446be7242cb0bb01f908a4831598fbb6f45e9828368c",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

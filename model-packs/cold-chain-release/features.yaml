@@ -1,0 +1,42 @@
+features:
+  - id: F001-weight-delta
+    subject: shipment.weight_delta_kg
+    description: Absolute difference between measured and declared shipment weight.
+    expression:
+      abs:
+        subtract:
+          - subject: shipment.measured_weight_kg
+          - subject: shipment.declared_weight_kg
+
+  - id: F002-weight-variance
+    subject: shipment.weight_variance_ratio
+    description: Absolute weight variance as a fraction of declared weight.
+    expression:
+      divide:
+        - subject: shipment.weight_delta_kg
+        - subject: shipment.declared_weight_kg
+    when:
+      - subject: shipment.declared_weight_kg
+        operator: GT
+        operand: {fixed: "0"}
+
+  - id: F003-temperature-deviation
+    subject: shipment.temp_deviation_c
+    description: Absolute deviation of observed cargo temperature from target.
+    expression:
+      abs:
+        subtract:
+          - subject: shipment.cargo_temp_c
+          - subject: shipment.target_temp_c
+
+  - id: F004-delay-ratio
+    subject: shipment.delay_ratio
+    description: Elapsed delay divided by the shipment SLA allowance.
+    expression:
+      divide:
+        - subject: shipment.delay_minutes
+        - subject: shipment.sla_minutes
+    when:
+      - subject: shipment.sla_minutes
+        operator: GT
+        operand: 0

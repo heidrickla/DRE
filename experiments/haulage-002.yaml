@@ -1,0 +1,49 @@
+# The same map, the same truck, one reading taken.
+#
+# Somebody has rated the north bridge and it holds. C001's disjunction is now
+# decidably true rather than unknown, the bridge opens, and the two-unit
+# route is available for the first time. The ford is still permitted and
+# still costs 5, so it loses.
+#
+# The pair is the point. These two experiments differ in exactly one
+# property -- `north_bridge.rating_ok`, absent in one and true in the other
+# -- and the engine returns a different route. Nothing about the map, the
+# costs or the goal changed. What changed is what is known, which is the
+# thing this engine claims to reason about.
+
+experiment:
+  id: haulage-002
+  description: >-
+    The same routing problem after the north bridge has been rated. One
+    observation reopens the shortest route and the ford's penalty stops
+    being worth paying.
+  pack: model-packs/haulage
+
+  given:
+    entities:
+      - id: truck
+        type: truck
+        properties:
+          - name: at
+            value: DEPOT
+            status: KNOWN
+
+      - id: north_bridge
+        type: north_bridge
+        properties:
+          - name: rating_ok
+            value: true
+            status: KNOWN
+
+      # Still unmeasured, still permitted, still penalised. It is not that
+      # the ford became unusable -- it became the more expensive of two
+      # usable routes.
+      - id: ford
+        type: ford
+        properties:
+          - name: rating_ok
+
+  expect:
+    plan:
+      - DRIVE_DEPOT_TO_NORTH_BRIDGE
+      - DRIVE_NORTH_BRIDGE_TO_YARD

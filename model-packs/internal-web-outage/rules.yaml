@@ -1,0 +1,346 @@
+rules:
+  - id: R001
+    description: A user-facing outage report opens the incident.
+    if:
+      - subject: incident.user_reports_unavailable
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.incident_open
+        value: true
+    priority: 10
+
+  - id: R010
+    description: DNS answered and returned the application name.
+    if:
+      - subject: incident.dns_query_answered
+        operator: EQ
+        operand: true
+      - subject: incident.dns_resolves_app
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.name_resolution_status
+        value: ok
+    priority: 20
+
+  - id: R011
+    description: DNS diagnostic produced no answer.
+    if:
+      - subject: incident.dns_query_answered
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.name_resolution_status
+        value: no_answer
+    priority: 20
+
+  - id: R012
+    description: DNS answered but did not resolve the application name.
+    if:
+      - subject: incident.dns_query_answered
+        operator: EQ
+        operand: true
+      - subject: incident.dns_resolves_app
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.name_resolution_status
+        value: failed
+    priority: 20
+
+  - id: R020
+    description: The address is reachable and the HTTPS port is open.
+    if:
+      - subject: incident.app_ip_reachable
+        operator: EQ
+        operand: true
+      - subject: incident.tcp_443_open
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.network_path_status
+        value: ok
+    priority: 30
+
+  - id: R021
+    description: The application address is not reachable.
+    if:
+      - subject: incident.app_ip_reachable
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.network_path_status
+        value: host_unreachable
+    priority: 30
+
+  - id: R022
+    description: The host responds but HTTPS is blocked or closed.
+    if:
+      - subject: incident.app_ip_reachable
+        operator: EQ
+        operand: true
+      - subject: incident.tcp_443_open
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.network_path_status
+        value: port_blocked
+    priority: 30
+
+  - id: R030
+    description: TLS inspection timed out and says nothing about certificate quality.
+    if:
+      - subject: incident.tls_probe_answered
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.tls_status
+        value: no_answer
+    priority: 40
+
+  - id: R031
+    description: TLS inspection completed and found a bad certificate.
+    if:
+      - subject: incident.tls_probe_answered
+        operator: EQ
+        operand: true
+      - subject: incident.tls_cert_valid
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.tls_status
+        value: certificate_bad
+    priority: 40
+
+  - id: R032
+    description: TLS inspection completed, certificate is valid, but inside the warning window.
+    if:
+      - subject: incident.tls_probe_answered
+        operator: EQ
+        operand: true
+      - subject: incident.tls_cert_valid
+        operator: EQ
+        operand: true
+      - subject: incident.cert_expiry_margin
+        operator: LTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.tls_status
+        value: expiring_soon
+    priority: 40
+
+  - id: R033
+    description: TLS inspection completed and the certificate is outside the warning window.
+    if:
+      - subject: incident.tls_probe_answered
+        operator: EQ
+        operand: true
+      - subject: incident.tls_cert_valid
+        operator: EQ
+        operand: true
+      - subject: incident.cert_expiry_margin
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.tls_status
+        value: ok
+    priority: 40
+
+  - id: R040
+    description: The app path is open but HTTP itself is unhealthy.
+    if:
+      - subject: incident.network_path_status
+        operator: EQ
+        operand: ok
+      - subject: incident.tls_status
+        operator: EQ
+        operand: ok
+      - any:
+          - subject: incident.http_status_class
+            operator: EQ
+            operand: server_error
+          - subject: incident.http_status_class
+            operator: EQ
+            operand: no_response
+    infer:
+      - subject: incident.web_status
+        value: unhealthy
+    priority: 50
+
+  - id: R041
+    description: HTTP and the application health endpoint agree the app is healthy.
+    if:
+      - subject: incident.http_status_class
+        operator: EQ
+        operand: ok
+      - subject: incident.web_health_reported_ok
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.web_status
+        value: healthy
+    priority: 50
+
+  - id: R050
+    description: The application cannot connect to its database.
+    if:
+      - subject: incident.db_connectivity_ok
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.dependency_status
+        value: db_failed
+    priority: 60
+
+  - id: R051
+    description: Database replication lag is above the operating threshold.
+    if:
+      - subject: incident.db_lag_margin
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.dependency_status
+        value: db_lagging
+    priority: 60
+
+  - id: R052
+    description: Database connectivity and lag both look healthy.
+    if:
+      - subject: incident.db_connectivity_ok
+        operator: EQ
+        operand: true
+      - subject: incident.db_lag_margin
+        operator: LTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.dependency_status
+        value: data_ok
+    priority: 60
+
+  - id: R060
+    description: The application cannot bind to LDAP.
+    if:
+      - subject: incident.ldap_bind_ok
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.auth_dependency_status
+        value: ldap_failed
+    priority: 70
+
+  - id: R061
+    description: Directory replication lag is above the authentication freshness threshold.
+    if:
+      - subject: incident.ad_lag_margin
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.auth_dependency_status
+        value: ad_replication_lagging
+    priority: 70
+
+  - id: R062
+    description: LDAP bind and directory replication both look healthy.
+    if:
+      - subject: incident.ldap_bind_ok
+        operator: EQ
+        operand: true
+      - subject: incident.ad_lag_margin
+        operator: LTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: incident.auth_dependency_status
+        value: auth_ok
+    priority: 70
+
+  - id: R100
+    description: Failed name resolution is sufficient for a DNS root-cause candidate.
+    if:
+      - subject: incident.name_resolution_status
+        operator: EQ
+        operand: failed
+    infer:
+      - subject: incident.root_cause
+        value: dns_failure
+    priority: 100
+
+  - id: R101
+    description: Failed reachability is sufficient for a network root-cause candidate.
+    if:
+      - any:
+          - subject: incident.network_path_status
+            operator: EQ
+            operand: host_unreachable
+          - subject: incident.network_path_status
+            operator: EQ
+            operand: port_blocked
+    infer:
+      - subject: incident.root_cause
+        value: network_failure
+    priority: 100
+
+  - id: R102
+    description: A completed TLS probe with a bad or nearly expired certificate is a TLS candidate.
+    if:
+      - any:
+          - subject: incident.tls_status
+            operator: EQ
+            operand: certificate_bad
+          - subject: incident.tls_status
+            operator: EQ
+            operand: expiring_soon
+    infer:
+      - subject: incident.root_cause
+        value: tls_failure
+    priority: 100
+
+  - id: R103
+    description: The web service is the candidate only after the underlying checks are healthy.
+    if:
+      - subject: incident.web_status
+        operator: EQ
+        operand: unhealthy
+      - subject: incident.dependency_status
+        operator: EQ
+        operand: data_ok
+      - subject: incident.auth_dependency_status
+        operator: EQ
+        operand: auth_ok
+    infer:
+      - subject: incident.root_cause
+        value: web_service_failure
+    priority: 100
+
+  - id: R104
+    description: Database connectivity failure or material lag is a database dependency candidate.
+    if:
+      - any:
+          - subject: incident.db_connectivity_ok
+            operator: EQ
+            operand: false
+          - subject: incident.db_lag_margin
+            operator: GT
+            operand: {fixed: "0"}
+    infer:
+      - subject: incident.root_cause
+        value: database_dependency
+    priority: 100
+
+  - id: R105
+    description: LDAP bind failure or material directory lag is a directory dependency candidate.
+    if:
+      - any:
+          - subject: incident.ldap_bind_ok
+            operator: EQ
+            operand: false
+          - subject: incident.ad_lag_margin
+            operator: GT
+            operand: {fixed: "0"}
+          - subject: incident.auth_error_seen
+            operator: EQ
+            operand: true
+    infer:
+      - subject: incident.root_cause
+        value: directory_dependency
+    priority: 100

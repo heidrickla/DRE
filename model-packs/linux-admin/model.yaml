@@ -1,0 +1,8 @@
+model:
+  id: linux-admin
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    Linux system administration reasoning over a single systemd unit's startup
+    failure, combining mount, package, kernel module, configuration, and journal
+    observations.

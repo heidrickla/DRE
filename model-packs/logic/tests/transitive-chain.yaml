@@ -1,0 +1,42 @@
+# DRAFT — see docs/decisions.md.
+#
+# Expected result for the pack's own test, run by `dre validate`.
+#
+# Note what is asserted beyond the answer: the number of rules that fired,
+# and the epistemic status of the conclusion. `c.holds` must come out
+# INFERRED rather than KNOWN — it was derived, not observed, and collapsing
+# that distinction would hide exactly the kind of provenance the engine
+# exists to track.
+
+test:
+  id: transitive-chain
+  description: A is true and A implies B implies C, therefore C is true.
+
+  given:
+    entities:
+      - id: a
+        type: proposition
+        properties:
+          holds:
+            value: true
+            status: KNOWN
+      - id: b
+        type: proposition
+        properties:
+          holds:
+            value: null
+            status: UNKNOWN
+      - id: c
+        type: proposition
+        properties:
+          holds:
+            value: null
+            status: UNKNOWN
+
+  expect:
+    properties:
+      c.holds:
+        value: true
+        status: INFERRED
+    rules_fired: 2
+    states_expanded: 0

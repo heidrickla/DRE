@@ -1,0 +1,66 @@
+# The two hard constraints are the same rule about different crossings, and
+# they differ only in what they do when nobody has measured the thing.
+#
+# That is `on_undecidable`, and until this pack no shipped model had a hard
+# constraint that could go undecidable at all -- the setting rested entirely
+# on `undecidable_constraints.rs`. A behaviour whose only evidence is its own
+# unit test is the shape that has produced most of the defects here.
+#
+# Each is written as "either the truck is not there, or the crossing is
+# rated". The disjunction matters: a bare `rating_ok == true` would be
+# evaluated in every candidate state, including ones nowhere near the water,
+# and would block the whole map on a missing reading about a bridge the
+# route never touches.
+#
+# Three-valued logic then does the work. Away from the crossing the first
+# disjunct is true and the constraint is satisfied outright. On it, the first
+# is false and the second is unknown, so the disjunction is unknown -- and
+# `on_undecidable` decides.
+
+constraints:
+  - id: C001
+    description: >-
+      An unrated north bridge is off limits. Refusing to cross a bridge
+      whose rating nobody knows is the conservative reading, and the
+      default.
+    hard: true
+    on_undecidable: block
+    conditions:
+      - any:
+          - not:
+              subject: truck.at
+              operator: EQ
+              operand: NORTH_BRIDGE
+          - subject: north_bridge.rating_ok
+            operator: EQ
+            operand: true
+
+  - id: C002
+    description: >-
+      An unrated ford may be used. A ford is shallow water rather than a
+      structure, so an absent rating is not the same kind of risk -- this is
+      the model author's judgement, not the engine's, which is exactly why
+      it is declared per constraint.
+    hard: true
+    on_undecidable: permit
+    conditions:
+      - any:
+          - not:
+              subject: truck.at
+              operator: EQ
+              operand: FORD
+          - subject: ford.rating_ok
+            operator: EQ
+            operand: true
+
+  - id: C003
+    description: >-
+      Using the ford is discouraged, not forbidden. Worth five units of
+      detour and no more.
+    hard: false
+    penalty: 5
+    conditions:
+      - not:
+          subject: truck.at
+          operator: EQ
+          operand: FORD

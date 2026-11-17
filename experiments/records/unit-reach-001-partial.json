@@ -1,0 +1,10 @@
+{
+  "experiment": "unit-reach-001-partial",
+  "input": "c22eb8a0755ff87cdd6b7af08fb56e64ba6c39894cd553c243e26f11a8765b3b",
+  "model": "77764ce0185fe84a49e8c8b5a8686005d6ae28934d55778e24ee4d7b2b3511fc",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "1f253675852d8b0ed120f0065baf2d030eda4e4e4a9f92b178473fd5763c027b",
+  "proof": "2582743c4d516496abcd835cb0db8f81c6d68e3a5000b339ea86f6dc2b18db1f",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

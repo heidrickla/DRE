@@ -1,0 +1,50 @@
+# Nobody has rated either crossing.
+#
+# The north bridge is therefore closed -- C001 blocks on undecidable -- and
+# the shortest route on the map, two units, is unavailable. The ford is open,
+# because C002 permits on undecidable, and costs 5 to use.
+#
+# So the planner pays. Ford route: 1 + 5 + 1 = 7. Over the hills: 3 + 3 + 3
+# = 9. It fords the river and the plan costs more than the distance driven,
+# which is the first time a soft penalty has actually been charged in this
+# repository. Every previous soft constraint was routed around for free.
+#
+# Three constraint behaviours in one run, none of which any shipped pack
+# exercised before: a hard constraint blocking on missing information, a
+# hard constraint permitting on it, and a penalty being paid.
+
+experiment:
+  id: haulage-001
+  description: >-
+    Freight routing where neither crossing has been rated. The bridge is
+    refused and the ford is used at a price, so the cheapest plan is not
+    the shortest one.
+  pack: model-packs/haulage
+
+  given:
+    entities:
+      - id: truck
+        type: truck
+        properties:
+          - name: at
+            value: DEPOT
+            status: KNOWN
+
+      # Declared and unmeasured. UNKNOWN is a claim -- nobody has been out
+      # to look -- and it is what both hard constraints have to interpret.
+      - id: north_bridge
+        type: north_bridge
+        properties:
+          - name: rating_ok
+      - id: ford
+        type: ford
+        properties:
+          - name: rating_ok
+
+  expect:
+    # Named in full rather than by length. Length alone would not
+    # distinguish the ford from the north bridge, and the whole experiment
+    # is about which of the two the engine refuses.
+    plan:
+      - DRIVE_DEPOT_TO_FORD
+      - DRIVE_FORD_TO_YARD

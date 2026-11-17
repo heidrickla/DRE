@@ -1,0 +1,23 @@
+# DRAFT — the model pack format is not finalised. See docs/decisions.md.
+#
+# Model Pack A, per plan section 19. The simplest domain that exercises
+# symbolic reasoning end to end:
+#
+#   A -> B
+#   B -> C
+#   A = TRUE
+#
+#   Determine C.
+#
+# Deliberately declares no geometry, causal, or constraint sections. If the
+# engine ever requires them to be present, that is a domain assumption
+# leaking into the runtime.
+
+model:
+  id: simple-logic
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Propositional chaining. Proves that forward-chaining inference reaches
+    a transitively implied conclusion, and that the proof records each
+    activation in order.

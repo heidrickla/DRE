@@ -1,0 +1,10 @@
+{
+  "experiment": "haulage-001",
+  "input": "dad0999c8d7c7f06b27c43d43d3f09555185c5988a3b064042481eba0fc3c462",
+  "model": "d2b62b7f4500e8433c9934fa63aa1d20535b1c5a8d9bb5d67825b08f13ce3e63",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "06f25503b57d39824bc5836f822ec8aa9a20bb8db474ddaa5dfd7fa610631caa",
+  "proof": "fca06517ce2d625cc78140bbcfbb6e9ad36286646aaab51546fca943b23c591e",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

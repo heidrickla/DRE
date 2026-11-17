@@ -1,0 +1,84 @@
+# Experiment 6: the stopped pump.
+#
+#   input power   = 0 W
+#   output power  = 0 W
+#   rated output  = 900 W
+#
+# Efficiency is 0/0. It is not zero — it is undefined, and this experiment
+# exists to hold the engine to saying so.
+#
+# The failure it guards against is not exotic. A model computing 0/0 as 0
+# would classify an idle pump as catastrophically inefficient and
+# recommend servicing it, and every step of that recommendation would look
+# perfectly reasonable. Nothing downstream could tell that the first number
+# was invented.
+#
+# So this run is mostly a set of assertions about what the engine declines
+# to conclude:
+#
+#   efficiency          INVALID   operands present, operation undefined
+#   efficiency_percent  UNKNOWN   its operand was not available
+#   power_loss          0         a genuinely defined subtraction
+#   classification      declined  one axis has no coordinate
+#   degraded            absent    never concluded from a number that is
+#                                 not there
+#
+# The two failure statuses are doing different work. INVALID says the
+# arithmetic has no result; UNKNOWN says an input was missing. Collapsing
+# them would lose the only signal that says which quantity is the root
+# cause.
+
+experiment:
+  id: process-002
+  description: >-
+    A stopped pump, where efficiency is undefined rather than zero.
+    Exercises INVALID as distinct from UNKNOWN, the cascade from an
+    invalid feature to the features that read it, and classification
+    declining when a derived axis has no value.
+  pack: model-packs/process
+
+  given:
+    entities:
+      - id: pump
+        type: pump
+        properties:
+          - name: input_power
+            value: 0
+            status: KNOWN
+          - name: output_power
+            value: 0
+            status: KNOWN
+          - name: rated_output
+            value: 900
+            status: KNOWN
+
+  expect:
+    properties:
+      # Division by zero. Both operands were known, so this is not a gap in
+      # the observations — it is a quantity that does not exist.
+      - subject: pump.efficiency
+        status: INVALID
+
+      # Reads efficiency, which had no value to give. UNKNOWN rather than
+      # INVALID: invalidity is not contagious, because "my input was
+      # missing" is true here and "my arithmetic has no result" is not.
+      - subject: pump.efficiency_percent
+        status: UNKNOWN
+
+      # Zero out of 900 rated is a defined division, and zero really is
+      # the load.
+      - subject: pump.load_percent
+        value: { fixed: "0" }
+        status: INFERRED
+
+      # Zero in minus zero out. Defined, and correct: a stopped pump loses
+      # nothing. This is why loss is a subtraction and efficiency is not.
+      - subject: pump.power_loss
+        value: { fixed: "0" }
+        status: INFERRED
+
+    # Nothing fires. R001 compares against an INVALID property, which is
+    # undecidable rather than false, so the pump is never concluded to be
+    # degraded. R002 evaluates 0 > 90 and declines honestly.
+    rules_fired: 0
+    states_expanded: 0

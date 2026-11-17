@@ -1,0 +1,55 @@
+# Derived features, per plan section 9.
+#
+# Note that F001 reads a property F002 produces. That is deliberate: the
+# engine evaluates features to a fixpoint in identifier order rather than
+# in declaration order, so a pack never has to be topologically sorted by
+# hand. Requiring dependency order would make the *ordering* of this file
+# semantic, and orderings get edited by people who are thinking about
+# something else.
+#
+# Every operand here is read at KNOWN or INFERRED only. A feature whose
+# inputs are not all available comes back UNKNOWN rather than substituting
+# a default -- a computed number is indistinguishable from a measured one
+# once it is in state, so a default would launder a guess into a fact.
+
+features:
+  - id: F001
+    subject: pump.efficiency_percent
+    description: >-
+      Efficiency as a percentage, for the geometric space. Reads F002,
+      which is declared after it.
+    expression:
+      multiply:
+        - subject: pump.efficiency
+        - literal: 100
+
+  - id: F002
+    subject: pump.efficiency
+    description: >-
+      Output power over input power. Undefined for a stopped pump, and the
+      engine reports that as INVALID rather than as zero.
+    expression:
+      divide:
+        - subject: pump.output_power
+        - subject: pump.input_power
+
+  - id: F003
+    subject: pump.load_percent
+    description: How hard the pump is working against what it is rated for.
+    expression:
+      multiply:
+        - divide:
+            - subject: pump.output_power
+            - subject: pump.rated_output
+        - literal: 100
+
+  - id: F004
+    subject: pump.power_loss
+    description: >-
+      Watts going somewhere other than the outlet. Defined whenever both
+      measurements exist, including for a stopped pump -- which is why it
+      is a subtraction and efficiency is not.
+    expression:
+      subtract:
+        - subject: pump.input_power
+        - subject: pump.output_power

@@ -1,0 +1,10 @@
+{
+  "experiment": "checkout-layer-diagnosis-002",
+  "input": "f5cbcf6335f16fc1cb6b31f0e4954cb3f53334cb9885b4016eb8911abd0887ca",
+  "model": "9652e80428c83517a6a1069d0070906992c7c9c71694b9c3361f1d9b37267894",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "cb0060a1a8323ccc3a406db5a3e878a7105bf67ed34c0e40edad1bd1140c51b2",
+  "proof": "8a742f0071f1da1cb31e17dc9c01d02d60e648a5dc7d3d4515055ba330dca6aa",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

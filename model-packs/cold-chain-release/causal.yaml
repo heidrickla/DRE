@@ -1,0 +1,139 @@
+actions:
+  - id: STANDARD_AUTHORIZE
+    description: Authorize a shipment already eligible for routine release.
+    preconditions:
+      - subject: shipment.standard_release_eligible
+        operator: EQ
+        operand: true
+      - subject: shipment.release_authorized
+        operator: EQ
+        operand: false
+    effects:
+      shipment.release_authorized:
+        set: true
+    cost: 1
+    reversible: false
+
+  - id: OBTAIN_DOCUMENTS
+    description: Obtain the missing shipping documents.
+    preconditions:
+      - subject: shipment.documents_complete
+        operator: EQ
+        operand: false
+    effects:
+      shipment.documents_complete:
+        set: true
+    cost: 3
+    reversible: false
+
+  - id: VERIFY_DOCUMENTS
+    description: Verify a complete document set.
+    preconditions:
+      - subject: shipment.documents_complete
+        operator: EQ
+        operand: true
+      - subject: shipment.docs_verified
+        operator: EQ
+        operand: false
+    effects:
+      shipment.docs_verified:
+        set: true
+    cost: 1
+    reversible: false
+
+  - id: BROKER_DOCUMENT_CLEARANCE
+    description: Use an expedited broker to obtain and verify missing documents in one step.
+    preconditions:
+      - subject: shipment.documents_complete
+        operator: EQ
+        operand: false
+      - subject: shipment.docs_verified
+        operator: EQ
+        operand: false
+    effects:
+      shipment.documents_complete:
+        set: true
+      shipment.docs_verified:
+        set: true
+    cost: 5
+    reversible: false
+
+  - id: COMPLETE_TEMP_INSPECTION
+    description: Complete the physical inspection required after a temperature excursion.
+    preconditions:
+      - subject: shipment.temp_inspection_required
+        operator: EQ
+        operand: true
+      - subject: shipment.inspection_complete
+        operator: EQ
+        operand: false
+    effects:
+      shipment.inspection_complete:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: COMPLETE_CUSTODY_AUDIT
+    description: Re-establish custody assurance after a chain-of-custody gap.
+    preconditions:
+      - subject: shipment.custody_audit_required
+        operator: EQ
+        operand: true
+      - subject: shipment.custody_verified
+        operator: EQ
+        operand: false
+    effects:
+      shipment.custody_verified:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: REVIEW_AUTHORIZE
+    description: Authorize release after the required recovery checks are complete.
+    preconditions:
+      - subject: shipment.recovery_required
+        operator: EQ
+        operand: true
+      - subject: shipment.documents_complete
+        operator: EQ
+        operand: true
+      - subject: shipment.docs_verified
+        operator: EQ
+        operand: true
+      - subject: shipment.custody_verified
+        operator: EQ
+        operand: true
+      - subject: shipment.inspection_complete
+        operator: EQ
+        operand: true
+      - subject: shipment.release_authorized
+        operator: EQ
+        operand: false
+    effects:
+      shipment.release_authorized:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: EMERGENCY_OVERRIDE
+    description: Emergency release after physical and custody checks but without document remediation.
+    preconditions:
+      - subject: shipment.recovery_required
+        operator: EQ
+        operand: true
+      - subject: shipment.custody_verified
+        operator: EQ
+        operand: true
+      - subject: shipment.inspection_complete
+        operator: EQ
+        operand: true
+      - subject: shipment.release_authorized
+        operator: EQ
+        operand: false
+    effects:
+      shipment.release_authorized:
+        set: true
+      shipment.override_used:
+        set: true
+    cost: 1
+    reversible: false

@@ -1,0 +1,52 @@
+# The same three aggregating rules as `device-cascade`, and none of its
+# diagnosing ones.
+#
+# R001, R010 and R020 are kept because they are not the problem: each turns
+# measurements into a named condition, which is what a rule is good at. What
+# is gone is R030 and R040 -- the two rules that each asserted a root cause
+# from a subset of the evidence and had no way to acknowledge the other.
+#
+# Nothing here writes `root_cause`. That property is the explanation
+# layer's, and a rule reaching in to set it would put the two mechanisms
+# back into conflict with each other, which is the state this pack exists to
+# get out of.
+
+rules:
+  - id: R001
+    description: A rail below 200 is a power fault.
+    if:
+      - subject: boiler-1.rail_voltage
+        operator: LT
+        operand: 200
+    infer:
+      - subject: boiler-1.power_fault
+        value: true
+    priority: 100
+
+  - id: R010
+    description: Three sensors complaining at once is degradation, not coincidence.
+    if:
+      - subject: boiler-1.temp_sensor_error
+        operator: EQ
+        operand: true
+      - subject: boiler-1.pressure_sensor_error
+        operator: EQ
+        operand: true
+      - subject: boiler-1.flow_sensor_error
+        operator: EQ
+        operand: true
+    infer:
+      - subject: boiler-1.sensors_degraded
+        value: true
+    priority: 100
+
+  - id: R020
+    description: Above ninety is overheating.
+    if:
+      - subject: boiler-1.temperature
+        operator: GT
+        operand: 90
+    infer:
+      - subject: boiler-1.overheating
+        value: true
+    priority: 100

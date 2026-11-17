@@ -1,0 +1,22 @@
+constraints:
+  - id: C001
+    description: Analyst review may only exist while the artifact is isolated.
+    hard: true
+    conditions:
+      - any:
+          - not:
+              subject: artifact-1.analyst_reviewed
+              operator: EQ
+              operand: true
+          - subject: artifact-1.isolated
+            operator: EQ
+            operand: true
+
+  - id: C002
+    description: Prefer states in which the artifact is not isolated.
+    hard: false
+    penalty: 1
+    conditions:
+      - subject: artifact-1.isolated
+        operator: EQ
+        operand: false

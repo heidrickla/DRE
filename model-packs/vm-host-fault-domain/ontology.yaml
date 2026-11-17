@@ -1,0 +1,78 @@
+entities:
+  host:
+    properties:
+      cpu_ready_ms_per_s:
+        type: fixed
+        min: 0
+      datastore_latency_ms:
+        type: fixed
+        min: 0
+      nic_loss_ppm:
+        type: integer
+        min: 0
+      cpu_saturated:
+        type: boolean
+      datastore_slow:
+        type: boolean
+      nic_unhealthy:
+        type: boolean
+
+  vm:
+    properties:
+      app_errors_per_min:
+        type: integer
+        min: 0
+      cpu_ready_ms_per_s:
+        type: fixed
+        min: 0
+      cpu_ready_baseline_ms_per_s:
+        type: fixed
+        min: 0
+      cpu_ready_excess_ms_per_s:
+        type: fixed
+      app_degraded:
+        type: boolean
+      cpu_wait_abnormal:
+        type: boolean
+      host_cpu_exposure:
+        type: boolean
+      datastore_exposure:
+        type: boolean
+      network_exposure:
+        type: boolean
+
+  incident:
+    properties:
+      app_degradation_present:
+        type: boolean
+      multi_vm_symptoms:
+        type: boolean
+      single_vm_pattern:
+        type: boolean
+      guest_wait_symptoms:
+        type: boolean
+      host_cpu_path:
+        type: boolean
+      datastore_path:
+        type: boolean
+      network_path:
+        type: boolean
+      root_cause:
+        type: symbol
+        values:
+          - HOST_CPU_CONTENTION
+          - DATASTORE_BACKEND
+          - NETWORK_LOSS
+          - GUEST_OS_CPU_BUG
+
+relationships:
+  runs_on:
+    from: vm
+    to: host
+    targets_per_source: one
+    sources_per_target: many
+  incident_scope:
+    from: incident
+    to: vm
+    targets_per_source: many
+    sources_per_target: many

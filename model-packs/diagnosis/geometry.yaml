@@ -1,0 +1,50 @@
+# Weighted state space, per plan section 12.
+#
+# Weights exist because the axes carry different units: a temperature
+# delta of 100 and a pressure delta of 100 are not comparable magnitudes,
+# and an unweighted distance would let whichever quantity happens to have
+# the larger numeric range dominate the classification.
+#
+# Distances are weighted *squared* distances and are never square-rooted;
+# ordering is preserved without it.
+
+space:
+  subject: machine
+  classify_into: nearest_region
+  boundary_distance_into: distance_from_region
+  inside_region_into: inside_region
+  dimensions:
+    - id: temperature
+      weight: 1
+    - id: vibration
+      weight: 2
+    - id: pressure
+      weight: 1
+
+regions:
+  - id: FAILURE_A
+    centroid:
+      temperature: 900
+      vibration: 850
+      pressure: 400
+    bounds:
+      temperature: { min: 800, max: 1000 }
+      vibration: { min: 700, max: 1000 }
+
+  - id: FAILURE_B
+    centroid:
+      temperature: 500
+      vibration: 900
+      pressure: 800
+    bounds:
+      vibration: { min: 800, max: 1000 }
+      pressure: { min: 700, max: 1000 }
+
+  - id: NORMAL
+    centroid:
+      temperature: 400
+      vibration: 300
+      pressure: 400
+    bounds:
+      temperature: { min: 0, max: 600 }
+      vibration: { min: 0, max: 500 }

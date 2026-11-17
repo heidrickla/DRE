@@ -1,0 +1,17 @@
+[package]
+name = "dre-core"
+description = "Phase 1: deterministic runtime foundation. Collections, IDs, canonical serialization, fixed-point arithmetic, hashing, execution context."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+blake3 = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

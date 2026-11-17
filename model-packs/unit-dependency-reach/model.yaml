@@ -1,0 +1,16 @@
+model:
+  id: unit-dependency-reach
+  version: 0.1.0
+  requires_engine: 0.18.0
+  description: >-
+    A systemd unit and the filesystems it mounts, reasoned about by
+    traversing a declared relationship rather than by naming each mount in a
+    rule.
+
+    This is the shape four independently authored packs asked for and every
+    one of them worked around by collapsing the graph into a single entity.
+    The `linux-admin` author put it plainly: dependency graphs want joins,
+    but rules only safely bind one type.
+
+    Nothing here binds two types. A rule binds one unit and *reaches* its
+    mounts, and the pack has to say how several mounts become one answer.

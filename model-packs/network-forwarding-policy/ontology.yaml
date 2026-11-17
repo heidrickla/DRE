@@ -1,0 +1,68 @@
+entities:
+  network_case:
+    properties:
+      a_core_cost:
+        type: integer
+        min: 0
+      a_edge_cost:
+        type: integer
+        min: 0
+      b_core_cost:
+        type: integer
+        min: 0
+      b_edge_cost:
+        type: integer
+        min: 0
+      path_a_cost:
+        type: fixed
+      path_b_cost:
+        type: fixed
+      cost_delta:
+        type: fixed
+      absolute_cost_delta:
+        type: fixed
+      adjacency_a_state:
+        type: symbol
+        values: [up, down, degraded]
+      adjacency_b_state:
+        type: symbol
+        values: [up, down, degraded]
+      route_candidate_a:
+        type: boolean
+      route_candidate_b:
+        type: boolean
+      selected_path:
+        type: symbol
+        values: [path_a, path_b, equal_cost, none]
+      acl_decision:
+        type: symbol
+        values: [permit, deny]
+      policy_state:
+        type: symbol
+        values: [allowed, blocked]
+      stp_state:
+        type: symbol
+        values: [forwarding, blocking]
+      mtu_ok:
+        type: boolean
+      link_error_rate:
+        type: fixed
+        min: 0
+      error_budget_margin:
+        type: fixed
+      path_health:
+        type: symbol
+        values: [clean, degraded, blocked]
+      loss_risk:
+        type: symbol
+        values: [low, elevated]
+      telemetry_drop_seen:
+        type: boolean
+      delivery_state:
+        type: symbol
+        values: [reachable, impaired, dropped_by_acl, route_unavailable, blackholed, unexplained_drop]
+      investigation_required:
+        type: boolean
+      diagnosis:
+        type: symbol
+        values: [ACL_BLOCK, ROUTING_BLACKHOLE, STP_BLOCK, PHYSICAL_DEGRADATION]

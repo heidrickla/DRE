@@ -1,0 +1,10 @@
+{
+  "experiment": "opcua-001-straightforward",
+  "input": "09403a11d89ebac8f6e49fafc0813c8b71087c5a2b7725e566dd49af0550f6b2",
+  "model": "d9819a875f31d6d2161ca5d891c2ee3fe0894beca1ba725efe8b66325288d265",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "44c36ca3fb47435d3a504ecb70d6dc8f8efc5c97a98d2f3b520fed96ad60c923",
+  "proof": "87b4f35e36870f208b3863b329ba37c25bd37974cfc35508e06a0c644fba5bc1",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

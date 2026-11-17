@@ -1,0 +1,18 @@
+# `switch` is a TYPE, not an entity. Before 2026-08-16 this rule could not
+# fire at all: the subject resolved against entity identifiers, no entity
+# was called `switch`, and the condition was simply unknown forever.
+#
+# It now binds once per instance, and each binding is its own activation
+# with its own conclusion.
+
+rules:
+  - id: R001
+    description: A switch above eighty percent CPU is overloaded.
+    if:
+      - subject: switch.cpu_load
+        operator: GT
+        operand: 80
+    infer:
+      - subject: switch.overloaded
+        value: true
+    priority: 100

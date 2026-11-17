@@ -1,0 +1,76 @@
+observations:
+  - id: acl_denies_flow
+    description: Policy evidence says the ACL denies the flow.
+    when:
+      subject: network_case.acl_decision
+      operator: EQ
+      operand: deny
+
+  - id: policy_allows_flow
+    description: Policy resolution and rules say the flow is allowed.
+    when:
+      subject: network_case.policy_state
+      operator: EQ
+      operand: allowed
+
+  - id: route_selected
+    description: A route exists for the flow.
+    when:
+      any:
+        - subject: network_case.selected_path
+          operator: EQ
+          operand: path_a
+        - subject: network_case.selected_path
+          operator: EQ
+          operand: path_b
+        - subject: network_case.selected_path
+          operator: EQ
+          operand: equal_cost
+
+  - id: stp_blocks_forwarding
+    description: Layer-2 state blocks forwarding.
+    when:
+      subject: network_case.stp_state
+      operator: EQ
+      operand: blocking
+
+  - id: telemetry_drops
+    description: Independent telemetry reports dropped traffic.
+    when:
+      subject: network_case.telemetry_drop_seen
+      operator: EQ
+      operand: true
+
+  - id: high_link_errors
+    description: The path has elevated physical or link-layer errors.
+    when:
+      subject: network_case.loss_risk
+      operator: EQ
+      operand: elevated
+
+hypotheses:
+  - id: ACL_BLOCK
+    description: The traffic is being denied by an ACL.
+    mechanisms:
+      - id: acl_policy_drop
+        explains: [acl_denies_flow, telemetry_drops]
+
+  - id: ROUTING_BLACKHOLE
+    description: The control plane selected a route but the data plane cannot deliver it.
+    mechanisms:
+      - id: selected_route_drops
+        explains: [route_selected, telemetry_drops]
+
+  - id: STP_BLOCK
+    description: Spanning tree is blocking the selected forwarding path.
+    mechanisms:
+      - id: l2_block_drops
+        explains: [stp_blocks_forwarding, telemetry_drops]
+
+  - id: PHYSICAL_DEGRADATION
+    description: Link-layer errors are causing packet loss.
+    mechanisms:
+      - id: dirty_link_drops
+        explains: [high_link_errors, telemetry_drops]
+
+rank_into: network_case.diagnosis

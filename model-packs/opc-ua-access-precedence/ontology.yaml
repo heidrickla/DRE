@@ -1,0 +1,147 @@
+entities:
+  endpoint:
+    properties:
+      security_mode:
+        type: symbol
+        values: [none, sign, sign_and_encrypt]
+      security_policy:
+        type: symbol
+        values: [none, basic128rsa15, basic256, basic256sha256, aes256_sha256_rsapss]
+      policy_strength:
+        type: integer
+        min: 0
+        max: 256
+      min_policy_required:
+        type: integer
+        min: 0
+        max: 256
+      deprecated_policy:
+        type: boolean
+      mode_policy_ok:
+        type: boolean
+
+  channel:
+    properties:
+      revised_lifetime:
+        type: fixed
+      token_age:
+        type: fixed
+      token_age_margin:
+        type: fixed
+      secure_channel_open:
+        type: boolean
+      renew_required:
+        type: boolean
+      channel_secure:
+        type: boolean
+
+  cert:
+    properties:
+      trustlist_state:
+        type: symbol
+        values: [trusted, untrusted, unknown]
+      revoked:
+        type: boolean
+      hostname_match:
+        type: boolean
+      expiry_margin_days:
+        type: fixed
+      trust_anchor_score:
+        type: integer
+        min: 0
+        max: 1000
+      revocation_source_score:
+        type: integer
+        min: 0
+        max: 1000
+      effective_trust_reliability:
+        type: fixed
+      trust_ok:
+        type: boolean
+      cert_health:
+        type: symbol
+        values: [healthy, revocation_uncertain, bad]
+
+  session:
+    properties:
+      auth_method:
+        type: symbol
+        values: [anonymous, username, user_certificate, issued_token]
+      auth_evidence_score:
+        type: integer
+        min: 0
+        max: 1000
+      auth_gap:
+        type: fixed
+      user_authorized:
+        type: boolean
+      session_active:
+        type: boolean
+      session_assurance:
+        type: symbol
+        values: [strong, weak, denied]
+
+  server:
+    properties:
+      internet_exposure_score:
+        type: integer
+        min: 0
+        max: 100
+      anonymous_surface_score:
+        type: integer
+        min: 0
+        max: 100
+      exposure_score:
+        type: fixed
+      crypto_score:
+        type: fixed
+      posture_region:
+        type: symbol
+        values: [hardened, managed_edge, legacy_exposed]
+      within_posture_region:
+        type: boolean
+      posture_margin:
+        type: fixed
+      production_role:
+        type: symbol
+        values: [safety_control, monitoring, lab]
+      write_policy:
+        type: symbol
+        values: [allow, deny, approval_required]
+      allow_anonymous:
+        type: boolean
+
+  operation:
+    properties:
+      service:
+        type: symbol
+        values: [read, write, call, history_update]
+      target_safety_class:
+        type: symbol
+        values: [safety_critical, process_critical, diagnostic]
+      requested_value_class:
+        type: symbol
+        values: [setpoint, configuration, diagnostic]
+      request_risk:
+        type: symbol
+        values: [low, moderate, high]
+      access_decision:
+        type: symbol
+        values: [allow, deny, manual_review]
+        # The one line this pack adds to the one beside it.
+        #
+        # An access decision is a policy, not a belief. Two rules concluding
+        # `deny` and `manual_review` are not undecided -- deny dominates, and
+        # it dominates whichever rule fired first or carried more priority.
+        # Declaring the order here says what the words mean relative to each
+        # other, which is a fact about the domain rather than about the rules.
+        precedence: [deny, manual_review, allow]
+      write_requires_approval:
+        type: boolean
+      permit_write:
+        type: boolean
+      audit_required:
+        type: boolean
+      preferred_explanation:
+        type: symbol
+        values: [LEGACY_ENDPOINT, STALE_TOKEN, BAD_CERT, SAFETY_WRITE_REVIEW]

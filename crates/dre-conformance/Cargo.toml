@@ -1,0 +1,29 @@
+[package]
+name = "dre-conformance"
+description = "Determinism conformance suite. Tests written to break determinism, not to confirm it."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+serde_json = { workspace = true }
+dre-symbolic = { workspace = true }
+dre-proof = { workspace = true }
+dre-model = { workspace = true }
+
+# Test-only, and deliberately only test-only. The concurrency attacks have
+# to drive a whole experiment -- pack loading, reasoning, geometry, search --
+# because a workload that exercised one crate would leave the seams between
+# them untested, and shared state is exactly the sort of thing that lives in
+# a seam. The suite itself must not depend on the harness.
+[dev-dependencies]
+dre-lab = { workspace = true }
+
+[lints]
+workspace = true

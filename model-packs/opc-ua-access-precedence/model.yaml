@@ -1,0 +1,13 @@
+model:
+  id: opc-ua-access-precedence
+  version: 0.1.0
+  requires_engine: 0.14.0
+  description: >-
+    The independently authored `opc-ua-access` pack, unchanged except for one
+    declared precedence order on `access_decision`.
+
+    That pack is kept exactly as its author wrote it, because it is the
+    evidence: they predicted the access decision would resolve CONFLICTING,
+    said plainly that the domain answer should be `deny` because an expired
+    channel dominates weak identity, and the engine did exactly what they
+    predicted. Overwriting it would have left only the fix.

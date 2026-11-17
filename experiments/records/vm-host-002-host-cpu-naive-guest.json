@@ -1,0 +1,10 @@
+{
+  "experiment": "vm-host-002-host-cpu-naive-guest",
+  "input": "4aa93c7b023f7fdcc4687ba2137e9a1fc999d3a3dda2d0eb1ef6e4e19ff88387",
+  "model": "eb4d70344c159452f7da3faa7e747656e0bb832dc38e3b1781247224452d31ac",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "d75e94140f70bc17d75ffd42f6a3cd06684b087ea1e7aa2fb8a78cdaa7c96180",
+  "proof": "6f3a21813b364dbd160b1995172966d33cd931ea7c0ebf163a6c3f028c753e13",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

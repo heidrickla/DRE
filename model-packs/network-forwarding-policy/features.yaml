@@ -1,0 +1,39 @@
+features:
+  - id: F001
+    subject: network_case.path_a_cost
+    description: Total OSPF-like metric for path A.
+    expression:
+      add:
+        - subject: network_case.a_core_cost
+        - subject: network_case.a_edge_cost
+
+  - id: F002
+    subject: network_case.path_b_cost
+    description: Total OSPF-like metric for path B.
+    expression:
+      add:
+        - subject: network_case.b_core_cost
+        - subject: network_case.b_edge_cost
+
+  - id: F003
+    subject: network_case.cost_delta
+    description: Negative means path A is cheaper; positive means path B is cheaper.
+    expression:
+      subtract:
+        - subject: network_case.path_a_cost
+        - subject: network_case.path_b_cost
+
+  - id: F004
+    subject: network_case.absolute_cost_delta
+    description: Absolute metric separation between the two candidate paths.
+    expression:
+      abs:
+        subject: network_case.cost_delta
+
+  - id: F005
+    subject: network_case.error_budget_margin
+    description: Link error rate above or below the one-percent operational budget.
+    expression:
+      subtract:
+        - subject: network_case.link_error_rate
+        - literal: "1.0"

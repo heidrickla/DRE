@@ -1,0 +1,34 @@
+constraints:
+  - id: C001-safe-before-release
+    description: Release is allowed only when no temperature inspection is required or inspection is complete, and no custody audit is required or custody is verified.
+    hard: true
+    conditions:
+      - any:
+          - subject: shipment.release_authorized
+            operator: EQ
+            operand: false
+          - all:
+              - any:
+                  - subject: shipment.temp_inspection_required
+                    operator: EQ
+                    operand: false
+                  - subject: shipment.inspection_complete
+                    operator: EQ
+                    operand: true
+              - any:
+                  - subject: shipment.custody_audit_required
+                    operator: EQ
+                    operand: false
+                  - subject: shipment.custody_verified
+                    operator: EQ
+                    operand: true
+
+  - id: C002-avoid-emergency-override
+    description: Prefer ordinary remediation rather than emergency override.
+    hard: false
+    penalty: 8
+    conditions:
+      - not:
+          subject: shipment.override_used
+          operator: EQ
+          operand: true

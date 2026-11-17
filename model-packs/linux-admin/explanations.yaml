@@ -1,0 +1,74 @@
+observations:
+  - id: mount_timeout
+    description: The required mount timed out or is absent.
+    when:
+      subject: unit.mount_timeout
+      operator: EQ
+      operand: true
+  - id: dependency_error
+    description: The journal reports dependency failure for the unit.
+    when:
+      subject: unit.journal_dependency_error
+      operator: EQ
+      operand: true
+  - id: package_file_missing
+    description: A package-owned unit file or executable is missing.
+    when:
+      subject: unit.package_file_missing
+      operator: EQ
+      operand: true
+  - id: module_unavailable
+    description: A required kernel module is not loaded.
+    when:
+      subject: unit.module_blocked
+      operator: EQ
+      operand: true
+  - id: unknown_symbol
+    description: Kernel logs show an unknown-symbol module failure.
+    when:
+      subject: unit.kernel_unknown_symbol
+      operator: EQ
+      operand: true
+  - id: permission_denied
+    description: The journal reports permission denied.
+    when:
+      subject: unit.permission_denied
+      operator: EQ
+      operand: true
+
+hypotheses:
+  - id: MOUNT_PROBLEM
+    description: A required filesystem mount failed before the service could start.
+    mechanisms:
+      - id: storage_dependency
+        explains: [mount_timeout, dependency_error]
+
+  - id: PACKAGE_PROBLEM
+    description: The package installation no longer matches what the unit expects.
+    mechanisms:
+      - id: package_payload
+        explains: [package_file_missing, dependency_error]
+
+  - id: KERNEL_MODULE_PROBLEM
+    description: Kernel module state prevents the service from creating its device interface.
+    mechanisms:
+      - id: module_loader
+        explains: [module_unavailable, unknown_symbol, dependency_error]
+
+  - id: PERMISSION_PROBLEM
+    description: DAC or MAC policy rejects the service even though dependencies exist.
+    mechanisms:
+      - id: access_control
+        explains: [permission_denied, dependency_error]
+
+  - id: SYSTEMIC_BOOT_PROBLEM
+    description: Several independent boot surfaces are broken at once.
+    mechanisms:
+      - id: storage_surface
+        explains: [mount_timeout]
+      - id: package_surface
+        explains: [package_file_missing]
+      - id: kernel_surface
+        explains: [module_unavailable, unknown_symbol, dependency_error]
+
+rank_into: unit.root_cause

@@ -1,0 +1,49 @@
+# One device. The interesting structure is in what is wrong with it, not in
+# how many entities there are.
+
+entities:
+  device:
+    properties:
+      # Measured.
+      rail_voltage:
+        type: integer
+        min: 0
+        max: 300
+      temperature:
+        type: integer
+        min: 0
+        max: 200
+
+      # Symptoms. Booleans because a reading cannot carry "errored" -- the
+      # value field is not optional -- so an error has to be encoded as a
+      # fact about the world. That encoding is itself under test.
+      temp_sensor_error:
+        type: boolean
+      pressure_sensor_error:
+        type: boolean
+      flow_sensor_error:
+        type: boolean
+      comms_error:
+        type: boolean
+
+      # Unrelated to the rail, and present so the pack is not four symptoms
+      # that all mean the same thing.
+      door_open:
+        type: boolean
+
+      # Never observed by anything. The missing observation.
+      coolant_level:
+        type: integer
+        min: 0
+        max: 100
+
+      # Concluded.
+      power_fault:
+        type: boolean
+      sensors_degraded:
+        type: boolean
+      overheating:
+        type: boolean
+      root_cause:
+        type: symbol
+        values: [POWER, THERMAL]

@@ -1,0 +1,15 @@
+# Model Pack B (plan section 19): mechanical diagnosis.
+#
+# The point of this pack is reasoning that must still reach a conclusion
+# with a property it cannot observe. `internal_state` is UNOBSERVABLE, not
+# UNKNOWN: no amount of further evidence gathering will resolve it, and a
+# reasoner that waits for an observation that cannot arrive has failed
+# differently from one that concludes under uncertainty.
+
+model:
+  id: simple-diagnosis
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Mechanical diagnosis from incomplete observations. Exercises evidence,
+    symbolic inference, and geometric classification together.

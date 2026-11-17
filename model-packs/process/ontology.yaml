@@ -1,0 +1,44 @@
+# Measured quantities are integers in watts. Everything else on this
+# entity is derived, which is the point of the pack.
+
+entities:
+  pump:
+    properties:
+      # Measured.
+      input_power:
+        type: integer
+        min: 0
+        max: 100000
+      output_power:
+        type: integer
+        min: 0
+        max: 100000
+      rated_output:
+        type: integer
+        min: 1
+        max: 100000
+
+      # Derived by features.yaml.
+      efficiency:
+        type: fixed
+      efficiency_percent:
+        type: fixed
+      load_percent:
+        type: fixed
+      power_loss:
+        type: fixed
+
+      # Concluded by rules.yaml.
+      overloaded:
+        type: boolean
+      degraded:
+        type: boolean
+      advice:
+        type: symbol
+        values: [reduce-load, service-now]
+
+      # Written by the geometry section. Checked against the regions
+      # geometry.yaml declares.
+      nearest_region:
+        type: symbol
+        values: [HEALTHY, OVERLOADED, FAULTY]

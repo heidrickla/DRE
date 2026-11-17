@@ -1,0 +1,78 @@
+observations:
+  - id: reboot-flags
+    description: One or more Windows reboot-pending indicators are active.
+    when:
+      subject: host.reboot_required
+      operator: EQ
+      operand: true
+  - id: old-patch-level
+    description: Patch compliance state is overdue.
+    when:
+      subject: host.patch_compliance_state
+      operator: EQ
+      operand: overdue
+  - id: stale-gpo
+    description: Group Policy result data is stale.
+    when:
+      subject: host.gpo_state
+      operator: EQ
+      operand: stale
+  - id: directory-degraded
+    description: Active Directory replication or domain health is degraded.
+    when:
+      subject: host.directory_health
+      operator: EQ
+      operand: degraded
+  - id: services-degraded
+    description: Critical Windows services are degraded.
+    when:
+      subject: host.service_health
+      operator: EQ
+      operand: degraded
+  - id: configuration-drift
+    description: DSC or configuration management sees drift.
+    when:
+      subject: host.dsc_drift_detected
+      operator: EQ
+      operand: true
+
+hypotheses:
+  - id: pending-reboot
+    description: The host is mostly suffering from post-patch pending reboot state.
+    mechanisms:
+      - id: servicing-stack
+        explains: [reboot-flags, old-patch-level]
+      - id: uptime-accumulation
+        explains: [stale-gpo]
+
+  - id: patch-gap
+    description: The latest security update is missing or incomplete.
+    mechanisms:
+      - id: patch-debt
+        explains: [old-patch-level]
+      - id: update-cache
+        explains: [reboot-flags]
+
+  - id: directory-health
+    description: Active Directory health is the main explanation.
+    mechanisms:
+      - id: replication
+        explains: [directory-degraded, stale-gpo]
+      - id: dc-reboot-sensitivity
+        explains: [reboot-flags]
+
+  - id: service-health
+    description: Service dependency failure is the main explanation.
+    mechanisms:
+      - id: service-control-manager
+        explains: [services-degraded, reboot-flags]
+
+  - id: configuration-drift
+    description: Configuration management drift is causing apparent patch and policy symptoms.
+    mechanisms:
+      - id: policy-drift
+        explains: [configuration-drift, stale-gpo]
+      - id: update-drift
+        explains: [old-patch-level]
+
+rank_into: host.likely_root_cause

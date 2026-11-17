@@ -1,0 +1,170 @@
+# Prediction recorded before execution.
+#
+# I expect this to be the simple sanity case. Evidence and given properties
+# should resolve to a strong endpoint, healthy certificate, fresh secure
+# channel, strong user-certificate session, and a high-risk write to a
+# safety-critical target.
+#
+# Expected asserted properties:
+# - endpoint.mode_policy_ok = true, INFERRED
+# - cert.trust_ok = true, INFERRED
+# - cert.cert_health = healthy, INFERRED
+# - channel.renew_required = false, INFERRED
+# - channel.channel_secure = true, INFERRED
+# - session.user_authorized = true, INFERRED
+# - session.session_assurance = strong, INFERRED
+# - operation.request_risk = high, INFERRED
+# - operation.write_requires_approval = true, INFERRED
+# - operation.access_decision = manual_review, INFERRED
+# - operation.permit_write = false, INFERRED
+# - operation.audit_required = true, INFERRED
+# - server.posture_region = hardened, INFERRED
+# - operation.preferred_explanation = SAFETY_WRITE_REVIEW, INFERRED
+#
+# Expected rules to fire: R002, R004, R007, R009, R011, R013, R017.
+# I do not expect R019 to fire because session_assurance should be strong.
+#
+# Least certain: explanation ranking. SAFETY_WRITE_REVIEW has one supported
+# mechanism and one unsupported mechanism, while all other hypotheses have no
+# supported mechanisms. I predict the strict leader will still be written to
+# operation.preferred_explanation.
+experiment:
+  id: opcua-001-straightforward
+  description: A fresh, trusted OPC UA channel requests a safety-critical write.
+  pack: model-packs/opc-ua-access
+
+  given:
+    now: 1000
+    entities:
+      - id: endpoint
+        type: endpoint
+        properties:
+          - name: security_mode
+            value: sign_and_encrypt
+            status: KNOWN
+          - name: security_policy
+            value: basic256sha256
+            status: KNOWN
+          - name: policy_strength
+            value: 256
+            status: KNOWN
+          - name: min_policy_required
+            value: 192
+            status: KNOWN
+          - name: deprecated_policy
+            value: false
+            status: KNOWN
+
+      - id: channel
+        type: channel
+        properties:
+          - name: revised_lifetime
+            value: {fixed: "3600"}
+            status: KNOWN
+          - name: token_age
+            value: {fixed: "1200"}
+            status: KNOWN
+          - name: secure_channel_open
+            value: true
+            status: KNOWN
+
+      - id: cert
+        type: cert
+        properties:
+          - name: trustlist_state
+            value: trusted
+            status: KNOWN
+          - name: hostname_match
+            value: true
+            status: KNOWN
+          - name: expiry_margin_days
+            value: {fixed: "42"}
+            status: KNOWN
+          - name: trust_anchor_score
+            value: 950
+            status: KNOWN
+          - name: revocation_source_score
+            value: 900
+            status: KNOWN
+
+      - id: session
+        type: session
+        properties:
+          - name: auth_method
+            value: user_certificate
+            status: KNOWN
+          - name: auth_evidence_score
+            value: 910
+            status: KNOWN
+          - name: session_active
+            value: true
+            status: KNOWN
+
+      - id: server
+        type: server
+        properties:
+          - name: internet_exposure_score
+            value: 5
+            status: KNOWN
+          - name: anonymous_surface_score
+            value: 5
+            status: KNOWN
+          - name: production_role
+            value: safety_control
+            status: KNOWN
+          - name: write_policy
+            value: approval_required
+            status: KNOWN
+          - name: allow_anonymous
+            value: false
+            status: KNOWN
+
+      - id: operation
+        type: operation
+        properties:
+          - name: service
+            value: write
+            status: KNOWN
+          - name: target_safety_class
+            value: safety_critical
+            status: KNOWN
+          - name: requested_value_class
+            value: setpoint
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    sources:
+      - id: ocsp-primary
+        reliability: 920
+        independence_group: pki-online
+
+    evidence:
+      - id: E001
+        subject: cert
+        predicate: revoked
+        value: false
+        source: ocsp-primary
+        reliability: 900
+        observed_at: 995
+
+  expect:
+    properties:
+      - subject: operation.access_decision
+        value: manual_review
+        status: INFERRED
+      - subject: operation.permit_write
+        value: false
+        status: INFERRED
+      - subject: channel.channel_secure
+        value: true
+        status: INFERRED
+      - subject: server.posture_region
+        value: hardened
+        status: INFERRED
+      - subject: operation.preferred_explanation
+        value: SAFETY_WRITE_REVIEW
+        status: INFERRED

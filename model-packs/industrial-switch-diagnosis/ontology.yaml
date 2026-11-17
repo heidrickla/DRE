@@ -1,0 +1,55 @@
+entities:
+  ethernet_switch:
+    properties:
+      input_voltage:
+        type: fixed
+      voltage_margin:
+        type: fixed
+      port_a_crc_rate:
+        type: fixed
+      port_b_crc_rate:
+        type: fixed
+      port_c_crc_rate:
+        type: fixed
+      crc_peak:
+        type: fixed
+      uplink_flap_rate:
+        type: fixed
+      cpu_load:
+        type: fixed
+      chassis_temp:
+        type: fixed
+      fan_rpm:
+        type: fixed
+      optical_rx_power:
+        type: fixed
+      supply_headroom:
+        type: symbol
+        values: [low, normal]
+      crc_state:
+        type: symbol
+        values: [severe, normal]
+      link_state:
+        type: symbol
+        values: [unstable, stable]
+      disturbance_scope:
+        type: symbol
+        values: [common_chassis]
+      control_plane_cause:
+        type: symbol
+        values: [unlikely, suspect]
+      thermal_cause:
+        type: symbol
+        values: [unlikely, suspect]
+      optical_cause:
+        type: symbol
+        values: [unlikely, suspect]
+      fault_candidate:
+        type: symbol
+        values: [dc_input_power, uplink_optical_path, control_plane, thermal]
+      diagnosis:
+        type: symbol
+        values: [dc_input_undervoltage, uplink_optical_degradation, control_plane_saturation, thermal_instability]
+      service_risk:
+        type: symbol
+        values: [low, elevated, critical]

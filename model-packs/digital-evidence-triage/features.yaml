@@ -1,0 +1,20 @@
+features:
+  - id: F001
+    subject: artifact-1.custody_gap
+    description: Required custody records minus corroborated custody records.
+    expression:
+      subtract:
+        - subject: artifact-1.required_custody_records
+        - subject: artifact-1.custody_records
+
+  - id: F002
+    subject: artifact-1.custody_ratio
+    description: Corroborated custody records divided by required custody records.
+    expression:
+      divide:
+        - subject: artifact-1.custody_records
+        - subject: artifact-1.required_custody_records
+    when:
+      - subject: artifact-1.required_custody_records
+        operator: GT
+        operand: 0

@@ -1,0 +1,6 @@
+goals:
+  - id: REBOOT_COMPLETED
+    conditions:
+      - subject: host.reboot_completed
+        operator: EQ
+        operand: true

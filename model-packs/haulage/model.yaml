@@ -1,0 +1,9 @@
+model:
+  id: haulage
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Freight routing across two water crossings of unknown load rating.
+    Exists to make the constraint layer's two unexercised behaviours
+    reachable from a pack: a soft penalty that is actually paid, and a hard
+    constraint that actually goes undecidable.

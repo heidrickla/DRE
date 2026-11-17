@@ -1,0 +1,62 @@
+# One unit, three mounts, one of them gone.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# `web` mounts srv-data (available), srv-logs (unavailable) and srv-cache
+# (available).
+#
+# R001 asks whether EVERY mount is unavailable. One is, two are not, so the
+# conjunction is false and `startable` is never concluded -- it stays absent
+# rather than becoming false, because a rule that does not fire writes
+# nothing.
+#
+# R002 asks whether SOME mount is unavailable. srv-logs is, so it fires and
+# `degraded` becomes true.
+#
+# The proof should carry a REACH node naming all three mounts reached, so the
+# conclusion is answerable for where it walked.
+#
+# The point of the experiment is that neither rule names a mount. Adding a
+# fourth filesystem below changes the answer without touching the pack.
+
+experiment:
+  id: unit-reach-001-partial
+  description: >-
+    A unit degraded by one missing filesystem out of three, concluded by
+    traversing a declared relationship rather than by enumerating mounts.
+  pack: model-packs/unit-dependency-reach
+
+  given:
+    entities:
+      - id: web
+        type: unit
+        properties:
+          - name: startable
+          - name: degraded
+      - id: srv-data
+        type: mount
+        properties:
+          - name: available
+            value: true
+      - id: srv-logs
+        type: mount
+        properties:
+          - name: available
+            value: false
+      - id: srv-cache
+        type: mount
+        properties:
+          - name: available
+            value: true
+
+    relationships:
+      - { id: M1, type: mounts, from: web, to: srv-data }
+      - { id: M2, type: mounts, from: web, to: srv-logs }
+      - { id: M3, type: mounts, from: web, to: srv-cache }
+
+  expect:
+    properties:
+      - subject: web.degraded
+        value: true
+        status: INFERRED
+    rules_fired: 1

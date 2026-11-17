@@ -1,0 +1,132 @@
+rules:
+  - id: R001
+    description: Checkout failures are above incident threshold.
+    if:
+      - subject: incident.checkout_error_rate_excess_pct
+        operator: GTE
+        operand: {fixed: "2.0"}
+    infer:
+      - subject: incident.checkout_error_rate_high
+        value: true
+    priority: 10
+
+  - id: R002
+    description: API latency is materially above baseline.
+    if:
+      - subject: incident.api_p95_delta_ms
+        operator: GTE
+        operand: {fixed: "350"}
+    infer:
+      - subject: incident.api_p95_high
+        value: true
+    priority: 10
+
+  - id: R003
+    description: Database p95 latency is materially above baseline.
+    if:
+      - subject: incident.db_p95_delta_ms
+        operator: GTE
+        operand: {fixed: "120"}
+    infer:
+      - subject: incident.db_p95_high
+        value: true
+    priority: 10
+
+  - id: R004
+    description: Application connection pool waits are elevated.
+    if:
+      - subject: incident.app_pool_wait_pct
+        operator: GTE
+        operand: {fixed: "20.0"}
+    infer:
+      - subject: incident.app_pool_wait_high
+        value: true
+    priority: 10
+
+  - id: R005
+    description: Load balancer retry distribution is skewed toward app-2.
+    if:
+      - subject: incident.lb_app2_retry_share_pct
+        operator: GTE
+        operand: {fixed: "55.0"}
+    infer:
+      - subject: incident.lb_retry_skew_to_app2
+        value: true
+    priority: 10
+
+  - id: R006
+    description: One application node has enough health flaps to matter.
+    if:
+      - subject: incident.app2_health_flaps_10m
+        operator: GTE
+        operand: 3
+    infer:
+      - subject: incident.single_node_health_flapping
+        value: true
+    priority: 10
+
+  - id: R007
+    description: Shared datastore write latency is high.
+    if:
+      - subject: incident.datastore_write_delta_ms
+        operator: GTE
+        operand: {fixed: "25"}
+    infer:
+      - subject: incident.datastore_write_latency_high
+        value: true
+    priority: 10
+
+  - id: R008
+    description: Shared datastore write latency is normal.
+    if:
+      - subject: incident.datastore_write_delta_ms
+        operator: LTE
+        operand: {fixed: "10"}
+    infer:
+      - subject: incident.datastore_write_latency_normal
+        value: true
+    priority: 10
+
+  - id: R009
+    description: Database lock waits are high enough to explain user-visible delay.
+    if:
+      - subject: incident.db_lock_wait_ms
+        operator: GTE
+        operand: 80
+    infer:
+      - subject: incident.db_lock_wait_high
+        value: true
+    priority: 10
+
+  - id: R010
+    description: Database lock waits are not high.
+    if:
+      - subject: incident.db_lock_wait_ms
+        operator: LTE
+        operand: 20
+    infer:
+      - subject: incident.db_lock_wait_normal
+        value: true
+    priority: 10
+
+  - id: R011
+    description: Hypervisor CPU ready time is high.
+    if:
+      - subject: incident.hypervisor_cpu_ready_pct
+        operator: GTE
+        operand: {fixed: "8.0"}
+    infer:
+      - subject: incident.hypervisor_cpu_ready_high
+        value: true
+    priority: 10
+
+  - id: R012
+    description: Hypervisor CPU ready time is normal.
+    if:
+      - subject: incident.hypervisor_cpu_ready_pct
+        operator: LTE
+        operand: {fixed: "3.0"}
+    infer:
+      - subject: incident.hypervisor_cpu_ready_normal
+        value: true
+    priority: 10

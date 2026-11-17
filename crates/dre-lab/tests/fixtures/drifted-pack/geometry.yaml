@@ -1,0 +1,17 @@
+space:
+  subject: widget
+  classify_into: nearest_region
+  dimensions:
+    - id: temperature
+      weight: 1
+
+regions:
+  - id: HOT
+    centroid:
+      temperature: 90
+  - id: WARM
+    centroid:
+      temperature: 50
+  - id: COLD
+    centroid:
+      temperature: 10

@@ -1,0 +1,210 @@
+# Experiment 8: a source that vouches for itself.
+#
+# `diagnosis-002` showed that counting sources is wrong when they share a
+# cause. This shows the other way a corroboration count can be gamed: by a
+# source claiming a trustworthiness the model never granted it.
+#
+# The readings on `temperature`:
+#
+#   400   four sensors, all on bus-1          -> one independent group
+#   400   `rogue-probe`, declared reliability 100,
+#         submitting evidence that claims 900 -> must count for nothing
+#   850   probe-x and probe-y, independent    -> two independent groups
+#   700   `drifted-probe`, observed at tick 500, aged out
+#
+# The answer is 850, and it is 850 by one group. If `rogue-probe` were
+# allowed the reliability it claims for itself, the 400 camp would have two
+# independent groups -- bus-1 and the rogue -- and the engine would have
+# strong support for two incompatible values and return CONFLICTING.
+#
+# So this experiment's answer changes depending on whether a source can
+# vouch for itself, which is what makes it worth committing rather than
+# leaving as a unit test. `Source.reliability` was declared and unread for
+# the whole MVP, and every test happened to give a source and its readings
+# the same figure, so nothing noticed.
+
+experiment:
+  id: diagnosis-003
+  description: >-
+    Contested measurement where one source claims a reliability its
+    declaration does not support, alongside a shared-cause majority and a
+    stale outlier. Exercises the trust ceiling, independence grouping and
+    freshness together.
+  pack: model-packs/diagnosis
+
+  given:
+    now: 1000
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # One bus, one common cause, one opinion.
+      - id: bus-sensor-a
+        reliability: 900
+        independence_group: bus-1
+      - id: bus-sensor-b
+        reliability: 900
+        independence_group: bus-1
+      - id: bus-sensor-c
+        reliability: 900
+        independence_group: bus-1
+      - id: bus-sensor-d
+        reliability: 900
+        independence_group: bus-1
+
+      # Declared barely worth listening to. Its evidence will claim
+      # otherwise.
+      - id: rogue-probe
+        reliability: 100
+
+      # Genuinely independent instruments.
+      - id: probe-x
+        reliability: 900
+      - id: probe-y
+        reliability: 900
+
+      # Reliable, but its reading is old.
+      - id: drifted-probe
+        reliability: 900
+
+      - id: vibration-a
+        reliability: 900
+      - id: vibration-b
+        reliability: 900
+      - id: pressure-a
+        reliability: 900
+      - id: pressure-b
+        reliability: 900
+
+    evidence:
+      # The shared-cause majority. Four readings, one opinion.
+      - id: E001
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: bus-sensor-a
+        reliability: 900
+        observed_at: 990
+      - id: E002
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: bus-sensor-b
+        reliability: 900
+        observed_at: 990
+      - id: E003
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: bus-sensor-c
+        reliability: 900
+        observed_at: 990
+      - id: E004
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: bus-sensor-d
+        reliability: 900
+        observed_at: 990
+
+      # The self-vouching reading. Its source is declared at 100; this
+      # claims 900. The lesser of the two is what counts, so it contributes
+      # no corroboration -- and without that ceiling the 400 camp would
+      # reach two independent groups and the result would be CONFLICTING.
+      - id: E005
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: rogue-probe
+        reliability: 900
+        observed_at: 990
+
+      # The two genuinely independent readings, which win.
+      - id: E010
+        subject: machine
+        predicate: temperature
+        value: 850
+        source: probe-x
+        reliability: 900
+        observed_at: 995
+      - id: E011
+        subject: machine
+        predicate: temperature
+        value: 850
+        source: probe-y
+        reliability: 900
+        observed_at: 995
+
+      # Aged out: observed at 500, window is 100, now is 1000. Recorded as
+      # dissent rather than dropped, so the proof can show it was seen.
+      - id: E020
+        subject: machine
+        predicate: temperature
+        value: 700
+        source: drifted-probe
+        reliability: 900
+        observed_at: 500
+
+      - id: E030
+        subject: machine
+        predicate: vibration
+        value: 810
+        source: vibration-a
+        reliability: 900
+        observed_at: 995
+      - id: E031
+        subject: machine
+        predicate: vibration
+        value: 810
+        source: vibration-b
+        reliability: 900
+        observed_at: 995
+
+      - id: E040
+        subject: machine
+        predicate: pressure
+        value: 410
+        source: pressure-a
+        reliability: 900
+        observed_at: 995
+      - id: E041
+        subject: machine
+        predicate: pressure
+        value: 410
+        source: pressure-b
+        reliability: 900
+        observed_at: 995
+
+    entities:
+      - id: machine
+        type: machine
+        properties:
+          - name: internal_state
+            status: UNOBSERVABLE
+
+  expect:
+    properties:
+      # Resolved to the independent pair, over a four-strong shared-cause
+      # majority, a self-vouching source and a stale outlier.
+      - subject: machine.temperature
+        value: 850
+        status: KNOWN
+
+      - subject: machine.bearing_fault
+        value: true
+        status: INFERRED
+      - subject: machine.failure_mode
+        value: bearing-wear
+        status: INFERRED
+      - subject: machine.condition
+        value: degraded
+        status: INFERRED
+
+      - subject: machine.internal_state
+        status: UNOBSERVABLE
+
+    rules_fired: 3
+    states_expanded: 0

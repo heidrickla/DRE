@@ -1,0 +1,44 @@
+entities:
+  artifact:
+    properties:
+      acquisition_complete:
+        type: boolean
+      hash_verified:
+        type: boolean
+      metadata_consistent:
+        type: boolean
+      custody_records:
+        type: integer
+        min: 0
+        max: 100
+      required_custody_records:
+        type: integer
+        min: 1
+        max: 100
+      custody_gap:
+        type: fixed
+        min: -100
+        max: 100
+      custody_ratio:
+        type: fixed
+      custody_complete:
+        type: boolean
+      provenance_quality:
+        type: symbol
+        values: [strong, adequate, weak]
+      authenticity_support:
+        type: symbol
+        values: [sufficient, insufficient]
+      remediation_possible:
+        type: boolean
+      triage_status:
+        type: symbol
+        values: [admissible, review, reject]
+      isolated:
+        type: boolean
+      analyst_reviewed:
+        type: boolean
+      secondary_hash_verified:
+        type: boolean
+      case_ready:
+        type: boolean

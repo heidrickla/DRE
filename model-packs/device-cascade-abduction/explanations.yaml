@@ -1,0 +1,118 @@
+# Two accounts of one device, and the observations both are scored against.
+#
+# The observation set is declared once and shared. That is what makes the
+# comparison fair: if each hypothesis brought its own list, either could
+# improve its standing by declaring fewer things to be explained, and the
+# ranking would measure ambition rather than fit.
+#
+# Every observation reads a *measurement* rather than a rule's conclusion,
+# so a healthy rail makes `undervoltage` definitely false rather than merely
+# undecided. Hanging it off `power_fault` instead would have been quieter
+# and worse: a rule that does not fire leaves its conclusion UNKNOWN, and
+# the layer could then never tell "the rail is fine" from "nobody looked".
+
+observations:
+  - id: undervoltage
+    description: The rail is below its working range.
+    when:
+      subject: boiler-1.rail_voltage
+      operator: LT
+      operand: 200
+
+  - id: temp_sensor_error
+    description: The temperature sensor is reporting a fault.
+    when:
+      subject: boiler-1.temp_sensor_error
+      operator: EQ
+      operand: true
+
+  - id: pressure_sensor_error
+    description: The pressure sensor is reporting a fault.
+    when:
+      subject: boiler-1.pressure_sensor_error
+      operator: EQ
+      operand: true
+
+  - id: flow_sensor_error
+    description: The flow sensor is reporting a fault.
+    when:
+      subject: boiler-1.flow_sensor_error
+      operator: EQ
+      operand: true
+
+  - id: comms_error
+    description: The controller has lost communications.
+    when:
+      subject: boiler-1.comms_error
+      operator: EQ
+      operand: true
+
+  - id: overheating
+    description: The device is above its temperature limit.
+    when:
+      subject: boiler-1.temperature
+      operator: GT
+      operand: 90
+
+  # Declared so that "an observation nobody has to explain" is exercised
+  # rather than assumed. The door is shut in every experiment here, so this
+  # never holds, and neither hypothesis is charged for ignoring it. A
+  # scheme that penalised unexplained observations by counting the declared
+  # set rather than the live one would quietly punish both accounts for a
+  # closed door.
+  - id: door_ajar
+    description: The access door is open.
+    when:
+      subject: boiler-1.door_open
+      operator: EQ
+      operand: true
+
+hypotheses:
+  - id: POWER
+    description: >-
+      Rail A has collapsed. Everything on it either browns out or loses the
+      controller that speaks for it.
+    mechanisms:
+      - id: rail_collapse
+        description: The rail itself is out of range.
+        explains: [undervoltage]
+
+      - id: bus_degradation
+        description: >-
+          The controller and the sensors it reads share rail A, so they fail
+          together. Four symptoms, and this is the declaration that says
+          they are one thing happening rather than four -- the engine
+          discounts the second and later observations under a single
+          mechanism instead of counting them as independent support.
+        explains:
+          - temp_sensor_error
+          - pressure_sensor_error
+          - flow_sensor_error
+          - comms_error
+
+  - id: THERMAL
+    description: >-
+      The device is genuinely overheating, and the heat is what is damaging
+      the instrumentation.
+    mechanisms:
+      - id: overheat
+        description: The measured temperature is above the limit.
+        explains: [overheating]
+
+      - id: heat_damage
+        description: >-
+          Heat reaches the temperature sensor first, which is the honest
+          version of this account. It is not a strawman: the temperature
+          really is high, this mechanism really is supported, and the
+          account loses on how much of the device it leaves unaccounted for
+          rather than on being obviously wrong.
+        explains: [temp_sensor_error]
+
+# The ranking becomes a fact the rest of the run may use. Opt-in, because a
+# ranking is a reading of the evidence and a pack should have to say it
+# wants that reading treated as a conclusion.
+#
+# Nothing is written unless the leader has a mechanism the state supports
+# and strictly outscores the runner-up. An exact tie broken by identifier
+# order is a stable report, not a diagnosis.
+rank_into: boiler-1.root_cause

@@ -1,0 +1,33 @@
+features:
+  - id: F010
+    subject: incident.cert_expiry_margin
+    description: Days remaining beyond the local 14 day certificate warning threshold.
+    expression:
+      subtract:
+        - subject: incident.cert_days_remaining
+        - literal: 14
+    when:
+      - subject: incident.cert_days_remaining
+        operator: KNOWN
+
+  - id: F020
+    subject: incident.db_lag_margin
+    description: Database replica lag beyond the local 30 second warning threshold.
+    expression:
+      subtract:
+        - subject: incident.db_replica_lag_seconds
+        - literal: 30
+    when:
+      - subject: incident.db_replica_lag_seconds
+        operator: KNOWN
+
+  - id: F030
+    subject: incident.ad_lag_margin
+    description: Directory replication lag beyond the local 300 second warning threshold.
+    expression:
+      subtract:
+        - subject: incident.ad_replication_lag_seconds
+        - literal: 300
+    when:
+      - subject: incident.ad_replication_lag_seconds
+        operator: KNOWN

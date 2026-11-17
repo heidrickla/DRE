@@ -1,0 +1,63 @@
+# Observed quantities carry domains; everything the pack concludes is
+# declared here too.
+#
+# The last three were missing until `dre validate` learned to read this
+# file, and their absence is instructive. Nothing was broken at run time --
+# the state builder creates a property on first write, so R002, R003 and
+# R010 worked exactly as intended. What was wrong is that this file claimed
+# to describe what the pack reasons about and did not, so a typo in any of
+# those three names would have produced a rule that quietly never fired.
+
+entities:
+  machine:
+    properties:
+      # Observed.
+      temperature:
+        type: integer
+        min: 0
+        max: 1000
+      vibration:
+        type: integer
+        min: 0
+        max: 1000
+      pressure:
+        type: integer
+        min: 0
+        max: 1000
+
+      # Declared UNOBSERVABLE by the experiments: no amount of evidence
+      # gathering resolves it, which is why it is declared and not omitted.
+      internal_state:
+        type: symbol
+
+      # Concluded by rules.
+      bearing_fault:
+        type: boolean
+      failure_mode:
+        type: symbol
+        values: [bearing-wear]
+      condition:
+        type: symbol
+        values: [degraded]
+
+      # R010 exists to prove nothing is ever concluded from an
+      # unobservable property, so this is declared and never written.
+      inspected_internally:
+        type: boolean
+
+      # Written by the geometry section. The vocabulary must list every
+      # region geometry.yaml declares -- `dre validate` checks the two
+      # against each other, which is the only thing that would notice a
+      # region being added without this being extended.
+      nearest_region:
+        type: symbol
+        values: [FAILURE_A, FAILURE_B, NORMAL]
+
+      # The classification names the *nearest* region whether or not the
+      # reading is in it, so on its own it cannot answer "is this machine
+      # actually in a failure band". These two say how far outside, and
+      # whether outside at all.
+      distance_from_region:
+        type: fixed
+      inside_region:
+        type: boolean

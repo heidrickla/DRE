@@ -1,0 +1,10 @@
+{
+  "experiment": "windows-admin-002-conflicted-dc",
+  "input": "b2455361da614e9ab62d6d5eaeec3a4f72d9aa445079de520c886b089fff4821",
+  "model": "acb69651832d742e017a2e118855abe3b25dc0cc39b58592cff10e719775b6ed",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "c1d7b78ea5e276558381f06b7645fbabb47b6694e2a84febcfe41d4efc5365b1",
+  "proof": "9f6bede9024b6591c21b12e139fb0105090f0aed5c6725e7bb5f0c220409bd30",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

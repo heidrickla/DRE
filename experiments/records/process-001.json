@@ -1,0 +1,10 @@
+{
+  "experiment": "process-001",
+  "input": "4d2ac0e58143d4a46af5b1533b4f547a507207ae431d1f7629f9deab9393a57d",
+  "model": "aae52e3c3f7252224d3d277ea3fd207e79d55987e40f886bd98a54069da76e31",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "a1a5b53f7dd7b0b92f6df6d505d62a0303e616fa52f1d38b55a6a63c5afe6cd1",
+  "proof": "e0b086bc72ca3ca67335703a4446154794c80a3b94120a76fc765c018352119f",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

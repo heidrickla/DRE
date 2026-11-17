@@ -1,0 +1,134 @@
+# Two properties end this run without a value, and the proof says why for
+# exactly one of them.
+#
+# `coolant_level` is declared and never observed -- nobody looked.
+# `temperature` was looked at: tc-17 was asked and its telemetry read timed
+# out. Before failed reads could be expressed, both were simply absent and
+# the difference was lost, which is what the third independent author
+# objected to.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# The failed attempt contributes no value and never reaches resolution, so
+# `temperature` never arrives, `overheating` is never concluded, and the
+# seductive THERMAL rule cannot fire. The rail evidence still stands, so:
+#
+#   root_cause = POWER
+#
+# and the proof carries a NO READING entry naming E020, tc-17 and the
+# reason, while `coolant_level` has no such entry because nothing was ever
+# attempted for it.
+
+experiment:
+  id: device-cascade-003
+  description: >-
+    A power rail fails, four subsystems on it report errors, and one of
+    those subsystems also reports an out-of-range temperature. Run against
+    the engine unchanged, to find where the current model breaks.
+  pack: model-packs/device-cascade
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # Independent instrument on its own supply. This one is telling the
+      # truth about the rail.
+      - id: vm-3
+        reliability: 900
+
+      # The controller and the thermocouple are both powered by rail A.
+      # One failure, one voice -- which is what the group declares.
+      - id: controller-a
+        reliability: 900
+        independence_group: rail-a
+      - id: tc-17
+        reliability: 900
+        independence_group: rail-a
+
+      # A different instrument on a different supply, reading a genuinely
+      # elevated temperature. This is the misleading independent
+      # observation: true, relevant, and not the root cause.
+      - id: ir-22
+        reliability: 900
+
+      - id: door-sw
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: boiler-1
+        predicate: rail_voltage
+        value: 150
+        source: vm-3
+        reliability: 900
+        observed_at: 990
+
+      # The cascade. Four symptoms, one cause, all on rail A.
+      - id: E010
+        subject: boiler-1
+        predicate: temp_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E011
+        subject: boiler-1
+        predicate: pressure_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E012
+        subject: boiler-1
+        predicate: flow_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E013
+        subject: boiler-1
+        predicate: comms_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+
+      # Unrelated to the rail, and true.
+      - id: E030
+        subject: boiler-1
+        predicate: door_open
+        value: false
+        source: door-sw
+        reliability: 900
+        observed_at: 990
+
+    # The instrument was asked and did not answer. Not a reading, so it
+    # lives outside `evidence` and cannot reach resolution at all.
+    failed_reads:
+      - id: E020
+        subject: boiler-1
+        predicate: temperature
+        source: tc-17
+        reason: telemetry read timed out after three attempts
+        observed_at: 990
+
+    entities:
+      - id: boiler-1
+        type: device
+        properties:
+          # The missing observation. Nothing measures it and nothing
+          # derives it.
+          - name: coolant_level
+          - name: power_fault
+          - name: sensors_degraded
+          - name: overheating
+          - name: root_cause
+
+  expect:
+    properties:
+      - subject: boiler-1.root_cause
+        value: POWER

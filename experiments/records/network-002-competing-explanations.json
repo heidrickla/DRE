@@ -1,0 +1,10 @@
+{
+  "experiment": "network-002-competing-explanations",
+  "input": "77bb816bdb70812100b48d59110f4e50192033332c1205fbcab65eb1fb0bf61f",
+  "model": "a0fa0b47bd5075fec2ca620d98e19ce4b85cadd2f92dac3fdf5607cc6e28d351",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "cf685c8b316ce15753e311083edff6bc0018f542b008ce30cfc4af6a8e587614",
+  "proof": "fd502f2ca9c8ab1c10a451d48fb1d5ba107b6e76d80c1bb5122406081ab253b4",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

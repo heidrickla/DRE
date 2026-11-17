@@ -1,0 +1,86 @@
+observations:
+  - id: app_degradation_present
+    description: At least one VM in the incident is application-degraded.
+    when:
+      subject: incident-1.app_degradation_present
+      operator: EQ
+      operand: true
+
+  - id: multi_vm_symptoms
+    description: The symptom appears on two or more scoped VMs.
+    when:
+      subject: incident-1.multi_vm_symptoms
+      operator: EQ
+      operand: true
+
+  - id: single_vm_pattern
+    description: The incident still looks like a single-VM fault domain.
+    needs_explaining: false
+    when:
+      subject: incident-1.single_vm_pattern
+      operator: EQ
+      operand: true
+
+  - id: guest_wait_symptoms
+    description: At least one VM has abnormal guest-visible CPU wait.
+    when:
+      subject: incident-1.guest_wait_symptoms
+      operator: EQ
+      operand: true
+
+  - id: host_cpu_path
+    description: A scoped degraded VM runs on a host with CPU saturation.
+    when:
+      subject: incident-1.host_cpu_path
+      operator: EQ
+      operand: true
+
+  - id: datastore_path
+    description: A scoped degraded VM runs on a host with slow datastore access.
+    when:
+      subject: incident-1.datastore_path
+      operator: EQ
+      operand: true
+
+  - id: network_path
+    description: A scoped degraded VM runs on a host with NIC packet loss.
+    when:
+      subject: incident-1.network_path
+      operator: EQ
+      operand: true
+
+hypotheses:
+  - id: HOST_CPU_CONTENTION
+    description: The hypervisor host is CPU-saturated and guest VMs inherit ready-time symptoms.
+    mechanisms:
+      - id: host_cpu_coupling
+        explains:
+          - guest_wait_symptoms
+          - host_cpu_path
+
+  - id: DATASTORE_BACKEND
+    description: A slow datastore path beneath the VM is causing application errors.
+    mechanisms:
+      - id: storage_wait
+        explains:
+          - app_degradation_present
+          - datastore_path
+
+  - id: NETWORK_LOSS
+    description: Host physical NIC loss is causing application errors.
+    mechanisms:
+      - id: packet_loss
+        explains:
+          - app_degradation_present
+          - network_path
+
+  - id: GUEST_OS_CPU_BUG
+    description: A VM-local guest CPU scheduling problem is causing the symptom.
+    mechanisms:
+      - id: local_guest_wait
+        explains:
+          - app_degradation_present
+          - guest_wait_symptoms
+          - single_vm_pattern
+
+rank_into: incident-1.root_cause

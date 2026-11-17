@@ -1,0 +1,145 @@
+experiment:
+  id: digital-evidence-002
+  description: >-
+    Non-obvious case: correlated custody reports disagree with two independent
+    reports, while hash and metadata observations are independently corroborated.
+    The resolved custody count must feed arithmetic and multiple chained rules.
+  pack: model-packs/digital-evidence-triage
+
+  given:
+    now: 1000
+    entities:
+      - id: artifact-1
+        type: artifact
+        properties:
+          - name: acquisition_complete
+            value: true
+            status: KNOWN
+          - name: required_custody_records
+            value: 5
+            status: KNOWN
+          - name: isolated
+            value: false
+            status: KNOWN
+          - name: analyst_reviewed
+            value: false
+            status: KNOWN
+          - name: secondary_hash_verified
+            value: false
+            status: KNOWN
+          - name: case_ready
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 20
+
+    sources:
+      - id: case-db
+        reliability: 950
+        independence_group: case-system
+      - id: export-job
+        reliability: 920
+        independence_group: case-system
+      - id: manual-audit
+        reliability: 900
+        independence_group: human-audit
+      - id: archive-log
+        reliability: 880
+        independence_group: archive
+      - id: acquisition-tool
+        reliability: 960
+        independence_group: acquisition
+      - id: secondary-verifier
+        reliability: 910
+        independence_group: verification
+
+    evidence:
+      - id: E101
+        subject: artifact-1
+        predicate: custody_records
+        value: 5
+        source: case-db
+        reliability: 940
+        observed_at: 995
+      - id: E102
+        subject: artifact-1
+        predicate: custody_records
+        value: 5
+        source: export-job
+        reliability: 910
+        observed_at: 996
+      - id: E103
+        subject: artifact-1
+        predicate: custody_records
+        value: 4
+        source: manual-audit
+        reliability: 890
+        observed_at: 994
+      - id: E104
+        subject: artifact-1
+        predicate: custody_records
+        value: 4
+        source: archive-log
+        reliability: 870
+        observed_at: 993
+      - id: E105
+        subject: artifact-1
+        predicate: hash_verified
+        value: true
+        source: acquisition-tool
+        reliability: 950
+        observed_at: 997
+      - id: E106
+        subject: artifact-1
+        predicate: hash_verified
+        value: true
+        source: secondary-verifier
+        reliability: 900
+        observed_at: 992
+      - id: E107
+        subject: artifact-1
+        predicate: metadata_consistent
+        value: true
+        source: case-db
+        reliability: 930
+        observed_at: 996
+      - id: E108
+        subject: artifact-1
+        predicate: metadata_consistent
+        value: true
+        source: manual-audit
+        reliability: 880
+        observed_at: 991
+
+  expect:
+    properties:
+      - subject: artifact-1.custody_records
+        value: 4
+        status: KNOWN
+      - subject: artifact-1.custody_gap
+        value: {fixed: "1"}
+        status: INFERRED
+      - subject: artifact-1.custody_ratio
+        value: {fixed: "0.8"}
+        status: INFERRED
+      - subject: artifact-1.custody_complete
+        value: false
+        status: INFERRED
+      - subject: artifact-1.provenance_quality
+        value: strong
+        status: INFERRED
+      - subject: artifact-1.authenticity_support
+        value: sufficient
+        status: INFERRED
+      - subject: artifact-1.remediation_possible
+        value: true
+        status: INFERRED
+      - subject: artifact-1.triage_status
+        value: review
+        status: INFERRED
+    rules_fired: 5
+    plan_length: 4
+    plan: [ISOLATE_ARTIFACT, ANALYST_REVIEW, SECONDARY_HASH_VERIFY, FINALIZE_CASE]

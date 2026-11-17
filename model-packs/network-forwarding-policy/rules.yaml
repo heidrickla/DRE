@@ -1,0 +1,308 @@
+rules:
+  - id: R001
+    description: Path A is a usable route candidate when its adjacency is up.
+    if:
+      - subject: network_case.adjacency_a_state
+        operator: EQ
+        operand: up
+    infer:
+      - subject: network_case.route_candidate_a
+        value: true
+    priority: 10
+
+  - id: R002
+    description: Path B is a usable route candidate when its adjacency is up.
+    if:
+      - subject: network_case.adjacency_b_state
+        operator: EQ
+        operand: up
+    infer:
+      - subject: network_case.route_candidate_b
+        value: true
+    priority: 10
+
+  - id: R003
+    description: Select path A when both paths are up and path A has the lower metric.
+    if:
+      - subject: network_case.route_candidate_a
+        operator: EQ
+        operand: true
+      - subject: network_case.route_candidate_b
+        operator: EQ
+        operand: true
+      - subject: network_case.cost_delta
+        operator: LT
+        operand: {fixed: "0"}
+    infer:
+      - subject: network_case.selected_path
+        value: path_a
+    priority: 20
+
+  - id: R004
+    description: Select path B when both paths are up and path B has the lower metric.
+    if:
+      - subject: network_case.route_candidate_a
+        operator: EQ
+        operand: true
+      - subject: network_case.route_candidate_b
+        operator: EQ
+        operand: true
+      - subject: network_case.cost_delta
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: network_case.selected_path
+        value: path_b
+    priority: 20
+
+  - id: R005
+    description: Equal-cost routing exists when both candidates are up and their metrics match.
+    if:
+      - subject: network_case.route_candidate_a
+        operator: EQ
+        operand: true
+      - subject: network_case.route_candidate_b
+        operator: EQ
+        operand: true
+      - subject: network_case.cost_delta
+        operator: EQ
+        operand: {fixed: "0"}
+    infer:
+      - subject: network_case.selected_path
+        value: equal_cost
+    priority: 20
+
+  - id: R006
+    description: If path A is up and path B is explicitly down, select path A.
+    if:
+      - subject: network_case.route_candidate_a
+        operator: EQ
+        operand: true
+      - subject: network_case.adjacency_b_state
+        operator: EQ
+        operand: down
+    infer:
+      - subject: network_case.selected_path
+        value: path_a
+    priority: 21
+
+  - id: R007
+    description: If path B is up and path A is explicitly down, select path B.
+    if:
+      - subject: network_case.route_candidate_b
+        operator: EQ
+        operand: true
+      - subject: network_case.adjacency_a_state
+        operator: EQ
+        operand: down
+    infer:
+      - subject: network_case.selected_path
+        value: path_b
+    priority: 21
+
+  - id: R008
+    description: No route exists when both adjacencies are explicitly down.
+    if:
+      - subject: network_case.adjacency_a_state
+        operator: EQ
+        operand: down
+      - subject: network_case.adjacency_b_state
+        operator: EQ
+        operand: down
+    infer:
+      - subject: network_case.selected_path
+        value: none
+      - subject: network_case.delivery_state
+        value: route_unavailable
+    priority: 22
+
+  - id: R009
+    description: A permitting ACL makes policy state allowed.
+    if:
+      - subject: network_case.acl_decision
+        operator: EQ
+        operand: permit
+    infer:
+      - subject: network_case.policy_state
+        value: allowed
+    priority: 30
+
+  - id: R010
+    description: A denying ACL makes policy state blocked.
+    if:
+      - subject: network_case.acl_decision
+        operator: EQ
+        operand: deny
+    infer:
+      - subject: network_case.policy_state
+        value: blocked
+    priority: 30
+
+  - id: R011
+    description: Forwarding STP, acceptable MTU, and low link errors mean the path is clean.
+    if:
+      - subject: network_case.stp_state
+        operator: EQ
+        operand: forwarding
+      - subject: network_case.mtu_ok
+        operator: EQ
+        operand: true
+      - subject: network_case.error_budget_margin
+        operator: LTE
+        operand: {fixed: "0"}
+    infer:
+      - subject: network_case.path_health
+        value: clean
+      - subject: network_case.loss_risk
+        value: low
+    priority: 40
+
+  - id: R012
+    description: Forwarding STP with high errors gives degraded path health.
+    if:
+      - subject: network_case.stp_state
+        operator: EQ
+        operand: forwarding
+      - subject: network_case.error_budget_margin
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: network_case.path_health
+        value: degraded
+      - subject: network_case.loss_risk
+        value: elevated
+    priority: 40
+
+  - id: R013
+    description: A blocking STP state blocks the forwarding path.
+    if:
+      - subject: network_case.stp_state
+        operator: EQ
+        operand: blocking
+    infer:
+      - subject: network_case.path_health
+        value: blocked
+    priority: 40
+
+  - id: R014
+    description: Allowed policy, a selected route, and clean forwarding make the flow reachable.
+    if:
+      - any:
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_a
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_b
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: equal_cost
+      - subject: network_case.policy_state
+        operator: EQ
+        operand: allowed
+      - subject: network_case.path_health
+        operator: EQ
+        operand: clean
+    infer:
+      - subject: network_case.delivery_state
+        value: reachable
+    priority: 50
+
+  - id: R015
+    description: A selected route with allowed policy but degraded forwarding is impaired.
+    if:
+      - any:
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_a
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_b
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: equal_cost
+      - subject: network_case.policy_state
+        operator: EQ
+        operand: allowed
+      - subject: network_case.path_health
+        operator: EQ
+        operand: degraded
+    infer:
+      - subject: network_case.delivery_state
+        value: impaired
+    priority: 50
+
+  - id: R016
+    description: Blocked policy drops the flow regardless of route quality.
+    if:
+      - subject: network_case.policy_state
+        operator: EQ
+        operand: blocked
+    infer:
+      - subject: network_case.delivery_state
+        value: dropped_by_acl
+    priority: 50
+
+  - id: R017
+    description: Allowed policy and a selected route with STP blocking is a blackhole.
+    if:
+      - any:
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_a
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: path_b
+          - subject: network_case.selected_path
+            operator: EQ
+            operand: equal_cost
+      - subject: network_case.policy_state
+        operator: EQ
+        operand: allowed
+      - subject: network_case.path_health
+        operator: EQ
+        operand: blocked
+    infer:
+      - subject: network_case.delivery_state
+        value: blackholed
+    priority: 50
+
+  - id: R018
+    description: Clean modeled forwarding that still has telemetry drops needs investigation.
+    if:
+      - subject: network_case.path_health
+        operator: EQ
+        operand: clean
+      - subject: network_case.policy_state
+        operator: EQ
+        operand: allowed
+      - subject: network_case.telemetry_drop_seen
+        operator: EQ
+        operand: true
+    infer:
+      - subject: network_case.delivery_state
+        value: unexplained_drop
+      - subject: network_case.investigation_required
+        value: true
+    priority: 60
+
+  - id: R019
+    description: Any impaired, blackholed, ACL-dropped, or unexplained delivery needs investigation.
+    if:
+      - any:
+          - subject: network_case.delivery_state
+            operator: EQ
+            operand: impaired
+          - subject: network_case.delivery_state
+            operator: EQ
+            operand: dropped_by_acl
+          - subject: network_case.delivery_state
+            operator: EQ
+            operand: blackholed
+          - subject: network_case.delivery_state
+            operator: EQ
+            operand: unexplained_drop
+    infer:
+      - subject: network_case.investigation_required
+        value: true
+    priority: 70

@@ -1,0 +1,150 @@
+# Experiment 4: diagnosis where the answer turns on *which* source is
+# trusted, not on how many agree.
+#
+# Three sensors report a normal temperature of 400. Two report 850. Naive
+# majority counting picks 400, three votes to two — and would be wrong,
+# because all three are on `bus-1` and a failed bus reports the same wrong
+# reading three times. Counting independence groups gives 1 against 2, so
+# the answer is 850 and the machine is diagnosed as faulty.
+#
+# This is the case the state builder's merge rule cannot reach. Given two
+# disagreeing observations it returns CONFLICTING, correctly, because it
+# has no provenance to reason with. Resolution is what provenance buys.
+
+experiment:
+  id: diagnosis-002
+  description: >-
+    Contested measurement resolved by source independence rather than by
+    vote count. Three sensors sharing one bus do not outweigh two
+    independent ones.
+  pack: model-packs/diagnosis
+
+  given:
+    now: 1000
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # All three on one bus: one common cause, so one group.
+      - id: sensor-bus-a
+        reliability: 900
+        independence_group: bus-1
+      - id: sensor-bus-b
+        reliability: 900
+        independence_group: bus-1
+      - id: sensor-bus-c
+        reliability: 900
+        independence_group: bus-1
+
+      # Independent instruments, each its own group.
+      - id: probe-x
+        reliability: 900
+      - id: probe-y
+        reliability: 900
+
+      - id: vibration-a
+        reliability: 900
+      - id: vibration-b
+        reliability: 900
+      - id: pressure-a
+        reliability: 900
+      - id: pressure-b
+        reliability: 900
+
+    evidence:
+      # The bus majority, which must NOT win.
+      - id: E001
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: sensor-bus-a
+        reliability: 900
+        observed_at: 990
+      - id: E002
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: sensor-bus-b
+        reliability: 900
+        observed_at: 990
+      - id: E003
+        subject: machine
+        predicate: temperature
+        value: 400
+        source: sensor-bus-c
+        reliability: 900
+        observed_at: 990
+
+      # Two genuinely independent readings, which must win.
+      - id: E010
+        subject: machine
+        predicate: temperature
+        value: 850
+        source: probe-x
+        reliability: 900
+        observed_at: 995
+      - id: E011
+        subject: machine
+        predicate: temperature
+        value: 850
+        source: probe-y
+        reliability: 900
+        observed_at: 995
+
+      - id: E020
+        subject: machine
+        predicate: vibration
+        value: 810
+        source: vibration-a
+        reliability: 900
+        observed_at: 995
+      - id: E021
+        subject: machine
+        predicate: vibration
+        value: 810
+        source: vibration-b
+        reliability: 900
+        observed_at: 995
+
+      - id: E030
+        subject: machine
+        predicate: pressure
+        value: 410
+        source: pressure-a
+        reliability: 900
+        observed_at: 995
+      - id: E031
+        subject: machine
+        predicate: pressure
+        value: 410
+        source: pressure-b
+        reliability: 900
+        observed_at: 995
+
+    entities:
+      - id: machine
+        type: machine
+        properties:
+          - name: internal_state
+            status: UNOBSERVABLE
+
+  expect:
+    properties:
+      # Resolved to the independent pair's reading, not the bus majority.
+      - subject: machine.temperature
+        value: 850
+        status: KNOWN
+
+      # Which then makes R001 fire.
+      - subject: machine.bearing_fault
+        value: true
+        status: INFERRED
+
+      - subject: machine.internal_state
+        status: UNOBSERVABLE
+
+    rules_fired: 3
+    states_expanded: 0

@@ -1,0 +1,93 @@
+# The undeclared bus again, with only ONE independent sensor disagreeing.
+#
+# -002 came back CONFLICTING, which looked like the engine failing safe.
+# This tests whether that safety is a property or an accident of the
+# numbers: in -002 the minority had exactly enough independent backing to
+# clear corroboration_required, so neither side could win.
+#
+# Here it does not. Three sensors on an undeclared bus say LOW; one
+# independent sensor says NORMAL.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# LOW has three independence groups because the bus is not declared.
+# NORMAL has one, which is below the bar. So LOW clears corroboration
+# alone:
+#
+#   supply_state = LOW
+#   shed_load    = true
+#
+# The engine should confidently shed load on the word of three sensors
+# behind one failure it was never told about. If so, -002's CONFLICTING was
+# luck, not protection.
+
+experiment:
+  id: bus-independence-003
+  description: >-
+    The identical five readings with the shared bus left undeclared.
+    Tests what the independence guard does when nobody has told it the
+    topology, which is the ordinary case for a device.
+  pack: model-packs/bus-independence
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # These three do share an acquisition bus. Nothing here says so,
+      # which is the entire experiment.
+      - id: sensor-a
+        reliability: 900
+      - id: sensor-b
+        reliability: 900
+      - id: sensor-c
+        reliability: 900
+
+      # Separately wired, separately powered.
+      - id: sensor-d
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-a
+        reliability: 900
+        observed_at: 990
+      - id: E002
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-b
+        reliability: 900
+        observed_at: 990
+      - id: E003
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-c
+        reliability: 900
+        observed_at: 990
+      - id: E004
+        subject: panel-1
+        predicate: supply_state
+        value: NORMAL
+        source: sensor-d
+        reliability: 900
+        observed_at: 990
+
+    entities:
+      - id: panel-1
+        type: panel
+        properties:
+          - name: supply_state
+          - name: shed_load
+
+  expect:
+    properties:
+      - subject: panel-1.supply_state
+        value: LOW

@@ -1,0 +1,14 @@
+# GENERATED as part of the deliberately broken fixture.
+#
+# Every feature produces fixed-point whatever the operation -- subtracting
+# two integers yields Fixed, not Integer. `drift` is declared integer in
+# the ontology, so the declaration contradicts what the pack itself writes.
+
+features:
+  - id: F001
+    subject: widget.drift
+    description: Difference between temperature and a reference.
+    expression:
+      subtract:
+        - subject: widget.temperature
+        - literal: 20

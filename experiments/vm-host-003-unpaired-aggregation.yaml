@@ -1,0 +1,183 @@
+experiment:
+  id: vm-host-003-unpaired-aggregation
+  description: >-
+    The counterexample the pack's own author predicted but could not write.
+
+    Their friction log records that `incident.host_cpu_path` establishes only
+    that at least one scoped VM is degraded and at least one scoped VM is
+    exposed to host CPU saturation — "It does not prove those are the same VM."
+    R025 ranges two independent `some` quantifiers over the same set, while its
+    description claims the stronger "at least one scoped *degraded* VM is
+    exposed to host CPU saturation".
+
+    This separates them. `vm-alpha` sits on a saturated host and is perfectly
+    healthy; `vm-beta` is failing on a host with nothing wrong. No single VM is
+    both degraded and host-exposed, and the host CPU account should not be
+    implicated. It is.
+
+    Authored here rather than by the pack's author, who identified the gap and
+    correctly noted that the paired join which would close it is refused.
+
+    That refusal was re-argued once this experiment and `-004` existed, and
+    `Reach.also` shipped in 0.21.0 as the narrow answer: further tests on the
+    same reached entity, conjoined before the collapse. R025 and R026 now
+    require one VM to be both degraded and exposed, so `host_cpu_path` is
+    correctly false here. The experiment is kept as the regression test for a
+    defect it once froze.
+  pack: model-packs/vm-host-fault-domain
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: host-saturated
+        type: host
+      - id: host-quiet
+        type: host
+      - id: vm-alpha
+        type: vm
+      - id: vm-beta
+        type: vm
+      - id: incident-1
+        type: incident
+
+    relationships:
+      # vm-alpha runs on the saturated host and is healthy.
+      - { id: R-alpha-host, type: runs_on, from: vm-alpha, to: host-saturated }
+      # vm-beta is the one actually failing, on a host with nothing wrong.
+      - { id: R-beta-host, type: runs_on, from: vm-beta, to: host-quiet }
+      - { id: R-incident-alpha, type: incident_scope, from: incident-1, to: vm-alpha }
+      - { id: R-incident-beta, type: incident_scope, from: incident-1, to: vm-beta }
+
+    sources:
+      - id: hypervisor
+        reliability: 900
+        independence_group: vcenter
+      - id: alpha-agent
+        reliability: 850
+        independence_group: alpha-guest
+      - id: beta-agent
+        reliability: 850
+        independence_group: beta-guest
+
+    evidence:
+      # The saturated host: CPU contention is real here.
+      - id: E001
+        subject: host-saturated
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "96"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E002
+        subject: host-saturated
+        predicate: datastore_latency_ms
+        value: {fixed: "7"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: host-saturated
+        predicate: nic_loss_ppm
+        value: 12
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+
+      # The quiet host: nothing wrong with it at all.
+      - id: E004
+        subject: host-quiet
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "9"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E005
+        subject: host-quiet
+        predicate: datastore_latency_ms
+        value: {fixed: "6"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E006
+        subject: host-quiet
+        predicate: nic_loss_ppm
+        value: 11
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+
+      # vm-alpha: host-exposed, and perfectly healthy.
+      - id: E007
+        subject: vm-alpha
+        predicate: app_errors_per_min
+        value: 1
+        source: alpha-agent
+        reliability: 850
+        observed_at: 999
+      - id: E008
+        subject: vm-alpha
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "22"}
+        source: alpha-agent
+        reliability: 850
+        observed_at: 999
+      - id: E009
+        subject: vm-alpha
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: alpha-agent
+        reliability: 850
+        observed_at: 999
+
+      # vm-beta: degraded, and not host-exposed at all.
+      - id: E010
+        subject: vm-beta
+        predicate: app_errors_per_min
+        value: 34
+        source: beta-agent
+        reliability: 850
+        observed_at: 999
+      - id: E011
+        subject: vm-beta
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "21"}
+        source: beta-agent
+        reliability: 850
+        observed_at: 999
+      - id: E012
+        subject: vm-beta
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "19"}
+        source: beta-agent
+        reliability: 850
+        observed_at: 999
+
+  expect:
+    properties:
+      # The two halves R025 conjoins, each true of a different VM.
+      - subject: vm-beta.app_degraded
+        value: true
+        status: INFERRED
+      - subject: vm-beta.host_cpu_exposure
+        value: false
+        status: INFERRED
+      - subject: vm-alpha.app_degraded
+        value: false
+        status: INFERRED
+      - subject: vm-alpha.host_cpu_exposure
+        value: true
+        status: INFERRED
+
+      # Under 0.20.0 this was `true` -- the defect this experiment was
+      # written to freeze, with no VM both degraded and host-exposed and the
+      # host CPU path implicated anyway. Since 0.21.0 R025 and R026 pair both
+      # halves on the same reached VM, so it is correctly false and this
+      # experiment is the regression test for that.
+      - subject: incident-1.host_cpu_path
+        value: false
+        status: INFERRED

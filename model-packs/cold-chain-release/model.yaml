@@ -1,0 +1,8 @@
+model:
+  id: cold-chain-release
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Deterministic triage and recovery planning for a temperature-controlled
+    freight shipment that must be either routinely authorized or remediated
+    before release.

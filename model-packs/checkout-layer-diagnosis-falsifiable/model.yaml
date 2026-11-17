@@ -1,0 +1,12 @@
+model:
+  id: checkout-layer-diagnosis-falsifiable
+  version: 0.1.0
+  requires_engine: 0.20.0
+  description: >-
+    Diagnostic model for intermittent checkout API failures in a layered
+    virtualized web stack: load balancer, app node, database, hypervisor and
+    shared storage. Identical to `checkout-layer-diagnosis` except that each
+    measurement is one boolean with both polarities inferred, rather than a
+    pair of one-way booleans that nothing can falsify. The original is kept
+    frozen as the externally authored artifact; this variant exists to test
+    whether the remedy `dre validate` recommends actually restores refutation.

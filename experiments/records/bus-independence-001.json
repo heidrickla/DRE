@@ -1,0 +1,10 @@
+{
+  "experiment": "bus-independence-001",
+  "input": "564866ccf9236c16e3b13c6a4fd3038072de6a44486d51b8738cdfd084b5d8f7",
+  "model": "6f60aa31b4b52705d768e60c33ed83bc3f69b7df09760a8a95dae85f53d3e445",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "87400336375d13c1b4a13ae185614bda47646bc8f8c404d1cbf9d8640b9d47b6",
+  "proof": "a84df2b559707b26a40382497f4c16b957cfe14ab1356b76fe339727211d0bd8",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

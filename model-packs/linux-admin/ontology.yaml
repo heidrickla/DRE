@@ -1,0 +1,86 @@
+entities:
+  unit:
+    properties:
+      boot_tick:
+        type: integer
+        min: 0
+      failure_tick:
+        type: integer
+        min: 0
+      last_failure_age:
+        type: fixed
+        min: 0
+      pressure_score:
+        type: fixed
+        min: 0
+      mount_pressure:
+        type: fixed
+        min: 0
+        max: 1
+      package_pressure:
+        type: fixed
+        min: 0
+        max: 1
+      module_pressure:
+        type: fixed
+        min: 0
+        max: 1
+      config_pressure:
+        type: fixed
+        min: 0
+        max: 1
+      unit_enabled:
+        type: boolean
+      unit_active:
+        type: boolean
+      recent_failure:
+        type: boolean
+      fstab_entry_present:
+        type: boolean
+      mount_active:
+        type: boolean
+      required_mount_unavailable:
+        type: boolean
+      package_installed:
+        type: boolean
+      dependency_failed:
+        type: boolean
+      module_required:
+        type: boolean
+      module_loaded:
+        type: boolean
+      module_blocked:
+        type: boolean
+      config_valid:
+        type: boolean
+      config_invalid:
+        type: boolean
+      default_target_blocked:
+        type: boolean
+      critical_chain_affected:
+        type: boolean
+      service_not_startable:
+        type: boolean
+      manual_repair_required:
+        type: boolean
+      journal_dependency_error:
+        type: boolean
+      kernel_unknown_symbol:
+        type: boolean
+      package_file_missing:
+        type: boolean
+      mount_timeout:
+        type: boolean
+      permission_denied:
+        type: boolean
+      likely_state:
+        type: symbol
+        values: [healthy, degraded, failed, blocked, unknown]
+      root_cause:
+        type: symbol
+        values:
+          - MOUNT_PROBLEM
+          - PACKAGE_PROBLEM
+          - KERNEL_MODULE_PROBLEM
+          - PERMISSION_PROBLEM
+          - SYSTEMIC_BOOT_PROBLEM

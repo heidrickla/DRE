@@ -1,0 +1,29 @@
+# DRAFT — see docs/decisions.md.
+#
+# Two rules at equal priority. Their firing order is decided by
+# specificity DESC then rule_id ASC, so it is fixed regardless of the order
+# they appear in this file — which is one of the properties the
+# determinism conformance suite is meant to attack (plan section 21).
+
+rules:
+  - id: R001
+    description: A implies B
+    if:
+      - subject: a.holds
+        operator: EQ
+        operand: true
+    infer:
+      - subject: b.holds
+        value: true
+    priority: 100
+
+  - id: R002
+    description: B implies C
+    if:
+      - subject: b.holds
+        operator: EQ
+        operand: true
+    infer:
+      - subject: c.holds
+        value: true
+    priority: 100

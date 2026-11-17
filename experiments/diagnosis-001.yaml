@@ -1,0 +1,75 @@
+# Experiment 2 (plan section 25): diagnosis despite missing information.
+#
+#   temperature        = high
+#   vibration          = high
+#   pressure           = normal
+#   internal condition = unknown
+#
+# The engine must reach a diagnosis without ever observing the internal
+# state, and must not conclude anything *from* that unobservability.
+
+experiment:
+  id: diagnosis-001
+  description: >-
+    Mechanical diagnosis with an unobservable internal state. Exercises
+    symbolic inference, specificity ordering, and geometric classification
+    in one run.
+  pack: model-packs/diagnosis
+
+  given:
+    entities:
+      - id: machine
+        type: machine
+        properties:
+          - name: temperature
+            value: 850
+            status: KNOWN
+          - name: vibration
+            value: 810
+            status: KNOWN
+          - name: pressure
+            value: 410
+            status: KNOWN
+
+          # Not UNKNOWN. No amount of evidence gathering resolves this,
+          # and the engine must treat "cannot be observed" differently
+          # from "not observed yet".
+          - name: internal_state
+            status: UNOBSERVABLE
+
+  expect:
+    properties:
+      # Derived from temperature and vibration by R001.
+      - subject: machine.bearing_fault
+        value: true
+        status: INFERRED
+
+      # Pressure is in range, so the more specific mode applies.
+      - subject: machine.failure_mode
+        status: INFERRED
+
+      # Geometric classification: nearest region by weighted squared
+      # distance, ties broken on region id.
+      - subject: machine.nearest_region
+        status: INFERRED
+
+      # The other two scalar geometry operators, which no pack could reach
+      # until the space declared where to put them. This reading sits
+      # inside FAILURE_A, so it is zero from the boundary -- the two agree,
+      # and a pack asserting only the classification could not tell.
+      - subject: machine.distance_from_region
+        value: {fixed: "0"}
+        status: INFERRED
+      - subject: machine.inside_region
+        value: true
+        status: INFERRED
+
+      # Untouched: still unobservable after reasoning.
+      - subject: machine.internal_state
+        status: UNOBSERVABLE
+
+    # R001, R002, R003 fire. R010 must not: its condition tests whether an
+    # UNOBSERVABLE property is KNOWN, which is false, so a fourth firing
+    # would mean the engine concluded from its own blind spot.
+    rules_fired: 3
+    states_expanded: 0

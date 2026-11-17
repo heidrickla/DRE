@@ -1,0 +1,22 @@
+[package]
+name = "dre-explain"
+description = "Phase 26D: explanation layer. Declared hypotheses, causal explanation graphs, and deterministic ranking."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-symbolic = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+dre-model = { workspace = true }
+
+[lints]
+workspace = true

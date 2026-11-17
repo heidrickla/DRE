@@ -1,0 +1,200 @@
+rules:
+  - id: R001_LOW_SUPPLY_HEADROOM
+    description: Less than or equal to 1.5 V of DC headroom is low.
+    if:
+      - subject: switch-1.voltage_margin
+        operator: LTE
+        operand: {fixed: "1.5"}
+    infer:
+      - subject: switch-1.supply_headroom
+        value: low
+
+  - id: R002_NORMAL_SUPPLY_HEADROOM
+    description: Four volts or more of DC headroom is normal for this diagnosis model.
+    if:
+      - subject: switch-1.voltage_margin
+        operator: GTE
+        operand: {fixed: "4.0"}
+    infer:
+      - subject: switch-1.supply_headroom
+        value: normal
+
+  - id: R003_SEVERE_DISTRIBUTED_CRC
+    description: A worst-group CRC rate at or above 120 indicates severe physical errors.
+    if:
+      - subject: switch-1.crc_peak
+        operator: GTE
+        operand: {fixed: "120.0"}
+    infer:
+      - subject: switch-1.crc_state
+        value: severe
+
+  - id: R004_LINK_INSTABILITY
+    description: Five or more uplink flaps per interval is unstable.
+    if:
+      - subject: switch-1.uplink_flap_rate
+        operator: GTE
+        operand: {fixed: "5.0"}
+    infer:
+      - subject: switch-1.link_state
+        value: unstable
+
+  - id: R005_COMMON_CHASSIS_PATTERN
+    description: Low supply headroom with distributed CRC errors and flapping indicates a common chassis disturbance.
+    if:
+      - subject: switch-1.supply_headroom
+        operator: EQ
+        operand: low
+      - subject: switch-1.crc_state
+        operator: EQ
+        operand: severe
+      - subject: switch-1.link_state
+        operator: EQ
+        operand: unstable
+    infer:
+      - subject: switch-1.disturbance_scope
+        value: common_chassis
+
+  - id: R006_CONTROL_PLANE_UNLIKELY
+    description: CPU below 60 percent makes control-plane saturation unlikely.
+    if:
+      - subject: switch-1.cpu_load
+        operator: LT
+        operand: {fixed: "60.0"}
+    infer:
+      - subject: switch-1.control_plane_cause
+        value: unlikely
+
+  - id: R007_CONTROL_PLANE_SUSPECT
+    description: CPU at or above 90 percent makes control-plane saturation suspect.
+    if:
+      - subject: switch-1.cpu_load
+        operator: GTE
+        operand: {fixed: "90.0"}
+    infer:
+      - subject: switch-1.control_plane_cause
+        value: suspect
+
+  - id: R008_THERMAL_UNLIKELY
+    description: Cool chassis temperature with a fast-running fan makes thermal instability unlikely.
+    if:
+      - subject: switch-1.chassis_temp
+        operator: LT
+        operand: {fixed: "65.0"}
+      - subject: switch-1.fan_rpm
+        operator: GT
+        operand: {fixed: "3500.0"}
+    infer:
+      - subject: switch-1.thermal_cause
+        value: unlikely
+
+  - id: R009_THERMAL_SUSPECT
+    description: Chassis temperature at or above 85 degrees makes thermal instability suspect.
+    if:
+      - subject: switch-1.chassis_temp
+        operator: GTE
+        operand: {fixed: "85.0"}
+    infer:
+      - subject: switch-1.thermal_cause
+        value: suspect
+
+  - id: R010_OPTICAL_UNLIKELY
+    description: Optical receive power at or above -10.5 dBm makes an uplink optical fault unlikely.
+    if:
+      - subject: switch-1.optical_rx_power
+        operator: GTE
+        operand: {fixed: "-10.5"}
+    infer:
+      - subject: switch-1.optical_cause
+        value: unlikely
+
+  - id: R011_OPTICAL_SUSPECT
+    description: Optical receive power below -15 dBm makes an uplink optical fault suspect.
+    if:
+      - subject: switch-1.optical_rx_power
+        operator: LT
+        operand: {fixed: "-15.0"}
+    infer:
+      - subject: switch-1.optical_cause
+        value: suspect
+
+  - id: R012_POWER_CANDIDATE
+    description: A common chassis disturbance with alternative causes looking normal points to DC input power.
+    if:
+      - subject: switch-1.disturbance_scope
+        operator: EQ
+        operand: common_chassis
+      - subject: switch-1.control_plane_cause
+        operator: EQ
+        operand: unlikely
+      - subject: switch-1.thermal_cause
+        operator: EQ
+        operand: unlikely
+      - subject: switch-1.optical_cause
+        operator: EQ
+        operand: unlikely
+    infer:
+      - subject: switch-1.fault_candidate
+        value: dc_input_power
+
+  - id: R013_POWER_DIAGNOSIS
+    description: A DC input power candidate is diagnosed as DC input undervoltage.
+    if:
+      - subject: switch-1.fault_candidate
+        operator: EQ
+        operand: dc_input_power
+    infer:
+      - subject: switch-1.diagnosis
+        value: dc_input_undervoltage
+
+  - id: R014_POWER_RISK
+    description: Diagnosed undervoltage with low headroom is critical service risk.
+    if:
+      - subject: switch-1.diagnosis
+        operator: EQ
+        operand: dc_input_undervoltage
+      - subject: switch-1.supply_headroom
+        operator: EQ
+        operand: low
+    infer:
+      - subject: switch-1.service_risk
+        value: critical
+
+  - id: R015_OPTICAL_CANDIDATE
+    description: Severe CRCs and flapping with normal DC headroom but poor optical receive power point to the uplink optical path.
+    if:
+      - subject: switch-1.supply_headroom
+        operator: EQ
+        operand: normal
+      - subject: switch-1.crc_state
+        operator: EQ
+        operand: severe
+      - subject: switch-1.link_state
+        operator: EQ
+        operand: unstable
+      - subject: switch-1.optical_cause
+        operator: EQ
+        operand: suspect
+    infer:
+      - subject: switch-1.fault_candidate
+        value: uplink_optical_path
+
+  - id: R016_OPTICAL_DIAGNOSIS
+    description: An uplink optical path candidate is diagnosed as optical degradation.
+    if:
+      - subject: switch-1.fault_candidate
+        operator: EQ
+        operand: uplink_optical_path
+    infer:
+      - subject: switch-1.diagnosis
+        value: uplink_optical_degradation
+
+  - id: R017_OPTICAL_RISK
+    description: Uplink optical degradation is an elevated service risk.
+    if:
+      - subject: switch-1.diagnosis
+        operator: EQ
+        operand: uplink_optical_degradation
+    infer:
+      - subject: switch-1.service_risk
+        value: elevated

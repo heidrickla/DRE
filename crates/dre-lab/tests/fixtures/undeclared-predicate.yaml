@@ -1,0 +1,61 @@
+# An observation naming a predicate the entity's type does not declare.
+#
+# THE HOLE THIS FIXTURE EXISTS TO KEEP CLOSED (engine 0.22.0). `defect_in`
+# reached the ontology through `?`, so a lookup miss returned `None` -- which
+# that function spells "no defect". A reading like the one below was therefore
+# admitted, resolved, and written into state by `StateBuilder::set`, which does
+# not consult the ontology either. Nothing objected, and the engine reasoned
+# over a property the model never said could exist.
+#
+# `no_such_property` is not declared on type `machine` anywhere in
+# model-packs/diagnosis. `temperature` beside it is declared and sound, and is
+# here on purpose: it proves the run still resolves the good reading rather
+# than failing wholesale. Stating a defect must not discard the remainder.
+#
+# NO `expect:` BLOCK. The assertion is on the PROOF -- that a Rejected node
+# names this reading and says why -- and it lives in
+# tests/refusals_that_nothing_exercised.rs. An expectation over final state
+# would pass just as well if the rejection stopped being recorded, which is the
+# half that matters.
+
+experiment:
+  id: undeclared-predicate-001
+  description: >-
+    A reading against an undeclared predicate is stated as a defect and
+    excluded, while a sound reading on the same entity still resolves.
+  pack: ../../../../model-packs/diagnosis
+
+  given:
+    now: 1000
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: machine
+        type: machine
+        properties:
+          - name: internal_state
+            status: UNOBSERVABLE
+
+    sources:
+      - id: probe-x
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: machine
+        predicate: no_such_property
+        value: 42
+        source: probe-x
+        reliability: 900
+        observed_at: 990
+      - id: E002
+        subject: machine
+        predicate: temperature
+        value: 850
+        source: probe-x
+        reliability: 900
+        observed_at: 990

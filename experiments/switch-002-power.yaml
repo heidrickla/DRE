@@ -1,0 +1,78 @@
+experiment:
+  id: switch-002-power
+  description: "Fault diagnosis case: chassis-wide instability with disputed DC input readings and several plausible alternative causes."
+  pack: model-packs/industrial-switch-diagnosis
+  given:
+    now: 1000
+    entities:
+      - id: switch-1
+        type: ethernet_switch
+        properties:
+          - name: port_a_crc_rate
+            value: {fixed: "140.0"}
+            status: KNOWN
+          - name: port_b_crc_rate
+            value: {fixed: "132.0"}
+            status: KNOWN
+          - name: port_c_crc_rate
+            value: {fixed: "121.0"}
+            status: KNOWN
+          - name: uplink_flap_rate
+            value: {fixed: "6.0"}
+            status: KNOWN
+          - name: cpu_load
+            value: {fixed: "33.0"}
+            status: KNOWN
+          - name: chassis_temp
+            value: {fixed: "51.0"}
+            status: KNOWN
+          - name: fan_rpm
+            value: {fixed: "4200.0"}
+            status: KNOWN
+          - name: optical_rx_power
+            value: {fixed: "-7.8"}
+            status: KNOWN
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+    sources:
+      - id: psu-telemetry
+        reliability: 930
+        independence_group: switch-psu
+      - id: dc-panel-meter
+        reliability: 920
+        independence_group: dc-panel
+      - id: historian-cache
+        reliability: 900
+        independence_group: historian
+    evidence:
+      - id: E101
+        subject: switch-1
+        predicate: input_voltage
+        value: {fixed: "45.2"}
+        source: psu-telemetry
+        reliability: 920
+        observed_at: 995
+      - id: E102
+        subject: switch-1
+        predicate: input_voltage
+        value: {fixed: "45.2"}
+        source: dc-panel-meter
+        reliability: 910
+        observed_at: 996
+      - id: E103
+        subject: switch-1
+        predicate: input_voltage
+        value: {fixed: "48.6"}
+        source: historian-cache
+        reliability: 890
+        observed_at: 700
+  expect:
+    properties:
+      - subject: switch-1.diagnosis
+        value: dc_input_undervoltage
+        status: INFERRED
+      - subject: switch-1.service_risk
+        value: critical
+        status: INFERRED

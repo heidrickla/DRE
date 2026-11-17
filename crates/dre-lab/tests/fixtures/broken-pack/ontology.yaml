@@ -1,0 +1,19 @@
+entities:
+  widget:
+    properties:
+      temperature:
+        type: integer
+        min: 0
+        max: 100
+      grade:
+        type: symbol
+      # A closed vocabulary. R003 below writes a symbol that is not in it,
+      # which at run time would simply compare equal to nothing.
+      condition:
+        type: symbol
+        values: [healthy, degraded]
+      # FAULT 7: written by the feature below, which produces fixed-point,
+      # but declared integer. Rules comparing it against integer literals
+      # then never fire, and nothing at run time says so.
+      drift:
+        type: integer

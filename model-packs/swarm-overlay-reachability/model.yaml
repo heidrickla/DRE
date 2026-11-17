@@ -1,0 +1,9 @@
+model:
+  id: swarm-overlay-reachability
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    Docker Swarm overlay-network reachability from a frozen topology snapshot.
+    Services attach to overlay networks; services sharing a network are treated
+    as mutually reachable on that network. The pack reasons only from declared
+    service state and service-to-network membership edges.

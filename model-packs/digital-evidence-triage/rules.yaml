@@ -1,0 +1,139 @@
+rules:
+  - id: R001
+    description: A zero custody gap means the required custody record set is complete.
+    if:
+      - subject: artifact-1.custody_gap
+        operator: EQ
+        operand: {fixed: "0"}
+    infer:
+      - subject: artifact-1.custody_complete
+        value: true
+    priority: 100
+
+  - id: R002
+    description: A positive custody gap means the custody record set is incomplete.
+    if:
+      - subject: artifact-1.custody_gap
+        operator: GT
+        operand: {fixed: "0"}
+    infer:
+      - subject: artifact-1.custody_complete
+        value: false
+    priority: 100
+
+  - id: R003
+    description: Verified hash and consistent metadata establish strong provenance quality.
+    if:
+      - subject: artifact-1.hash_verified
+        operator: EQ
+        operand: true
+      - subject: artifact-1.metadata_consistent
+        operator: EQ
+        operand: true
+    infer:
+      - subject: artifact-1.provenance_quality
+        value: strong
+    priority: 100
+
+  - id: R004
+    description: Verified hash with inconsistent metadata gives only adequate provenance quality.
+    if:
+      - subject: artifact-1.hash_verified
+        operator: EQ
+        operand: true
+      - subject: artifact-1.metadata_consistent
+        operator: EQ
+        operand: false
+    infer:
+      - subject: artifact-1.provenance_quality
+        value: adequate
+    priority: 100
+
+  - id: R005
+    description: A failed hash verification gives weak provenance quality.
+    if:
+      - subject: artifact-1.hash_verified
+        operator: EQ
+        operand: false
+    infer:
+      - subject: artifact-1.provenance_quality
+        value: weak
+    priority: 100
+
+  - id: R006
+    description: Strong provenance and at least eighty percent custody coverage provide sufficient authenticity support.
+    if:
+      - subject: artifact-1.provenance_quality
+        operator: EQ
+        operand: strong
+      - subject: artifact-1.custody_ratio
+        operator: GTE
+        operand: {fixed: "0.8"}
+      - subject: artifact-1.acquisition_complete
+        operator: EQ
+        operand: true
+    infer:
+      - subject: artifact-1.authenticity_support
+        value: sufficient
+    priority: 100
+
+  - id: R007
+    description: Weak provenance makes authenticity support insufficient.
+    if:
+      - subject: artifact-1.provenance_quality
+        operator: EQ
+        operand: weak
+    infer:
+      - subject: artifact-1.authenticity_support
+        value: insufficient
+    priority: 100
+
+  - id: R008
+    description: Sufficient authenticity support plus complete custody yields an admissible triage result.
+    if:
+      - subject: artifact-1.authenticity_support
+        operator: EQ
+        operand: sufficient
+      - subject: artifact-1.custody_complete
+        operator: EQ
+        operand: true
+    infer:
+      - subject: artifact-1.triage_status
+        value: admissible
+    priority: 100
+
+  - id: R009
+    description: Sufficient authenticity support with incomplete custody can be remediated by review.
+    if:
+      - subject: artifact-1.authenticity_support
+        operator: EQ
+        operand: sufficient
+      - subject: artifact-1.custody_complete
+        operator: EQ
+        operand: false
+    infer:
+      - subject: artifact-1.remediation_possible
+        value: true
+    priority: 100
+
+  - id: R010
+    description: A remediable custody defect yields review rather than rejection.
+    if:
+      - subject: artifact-1.remediation_possible
+        operator: EQ
+        operand: true
+    infer:
+      - subject: artifact-1.triage_status
+        value: review
+    priority: 100
+
+  - id: R011
+    description: Insufficient authenticity support yields rejection.
+    if:
+      - subject: artifact-1.authenticity_support
+        operator: EQ
+        operand: insufficient
+    infer:
+      - subject: artifact-1.triage_status
+        value: reject
+    priority: 100

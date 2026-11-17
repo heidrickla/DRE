@@ -1,0 +1,8 @@
+model:
+  id: vm-host-fault-domain
+  version: 0.1.0
+  requires_engine: 0.21.0
+  description: >-
+    Diagnostic model for virtual machines that each run on exactly one
+    hypervisor host. Guest symptoms may be caused by a local guest problem,
+    an application/backend problem, or by the single host underneath many VMs.

@@ -1,0 +1,58 @@
+entities:
+  shipment:
+    properties:
+      declared_weight_kg:
+        type: fixed
+      measured_weight_kg:
+        type: fixed
+      weight_delta_kg:
+        type: fixed
+      weight_variance_ratio:
+        type: fixed
+      target_temp_c:
+        type: fixed
+      cargo_temp_c:
+        type: fixed
+      temp_deviation_c:
+        type: fixed
+      delay_minutes:
+        type: integer
+        min: 0
+      sla_minutes:
+        type: integer
+        min: 1
+      delay_ratio:
+        type: fixed
+      documents_complete:
+        type: boolean
+      docs_verified:
+        type: boolean
+      custody_verified:
+        type: boolean
+      inspection_complete:
+        type: boolean
+      override_used:
+        type: boolean
+      release_authorized:
+        type: boolean
+      temperature_status:
+        type: symbol
+        values: [normal, excursion]
+      weight_status:
+        type: symbol
+        values: [match, mismatch]
+      delay_status:
+        type: symbol
+        values: [on-time, delayed]
+      manual_review_required:
+        type: boolean
+      quarantine_required:
+        type: boolean
+      temp_inspection_required:
+        type: boolean
+      custody_audit_required:
+        type: boolean
+      recovery_required:
+        type: boolean
+      standard_release_eligible:
+        type: boolean

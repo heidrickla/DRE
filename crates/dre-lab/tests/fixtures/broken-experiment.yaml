@@ -1,0 +1,44 @@
+# An experiment that binds the broken fixture pack wrongly.
+#
+# Test fixture, deliberately broken. Every fault here needs the
+# instance-to-type binding to be visible at all, which is why they are in
+# an experiment rather than in the pack: a pack's subjects name instances,
+# and which type an instance has is something only an experiment says.
+
+experiment:
+  id: broken-001
+  description: Deliberately inconsistent experiment, used to test validation.
+  pack: fixtures/broken-pack
+
+  given:
+    entities:
+      - id: widget
+        type: widget
+        properties:
+          # FAULT: 500 is outside the declared domain [0, 100]. This is
+          # exactly what EpistemicStatus::Invalid is defined for --
+          # observed, but outside the declared domain of the property.
+          - name: temperature
+            value: 500
+            status: KNOWN
+
+          # FAULT: declared `symbol`, given a boolean.
+          - name: grade
+            value: true
+            status: KNOWN
+
+          # FAULT: the type `widget` does not declare this at all.
+          - name: undeclared_on_this_type
+            value: 1
+            status: KNOWN
+
+      # FAULT: no such entity type in the ontology.
+      - id: gadget
+        type: gadget
+        properties:
+          - name: temperature
+            value: 10
+            status: KNOWN
+
+  expect:
+    properties: []

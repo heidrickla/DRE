@@ -1,0 +1,24 @@
+# Three entities: the vehicle, and the two crossings whose load ratings
+# decide whether it may use them.
+#
+# `rating_ok` is a boolean that experiments may leave UNKNOWN, which is the
+# point of the pack. An unrated crossing is not an unsafe crossing and it is
+# not a safe one -- it is a crossing nobody has measured, and the two
+# constraints below disagree deliberately about what to do with that.
+
+entities:
+  truck:
+    properties:
+      at:
+        type: symbol
+        values: [DEPOT, NORTH_BRIDGE, FORD, HILL_A, HILL_B, YARD]
+
+  north_bridge:
+    properties:
+      rating_ok:
+        type: boolean
+
+  ford:
+    properties:
+      rating_ok:
+        type: boolean

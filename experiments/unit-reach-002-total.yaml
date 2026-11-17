@@ -1,0 +1,55 @@
+# The same pack, the strong claim, and one word of difference in the answer.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# Every mount is now unavailable, so R001's `every` holds and `startable`
+# becomes false. R002's `some` also holds, so `degraded` becomes true as
+# well. Both rules fire.
+#
+# This is the experiment that makes -001 mean something: without it, `every`
+# and `some` are indistinguishable on the evidence, and the pack would not
+# have shown that the collapse key does any work.
+
+experiment:
+  id: unit-reach-002-total
+  description: >-
+    The same unit with every filesystem gone, so the universal claim holds
+    and the diagnosis hardens from degraded to unstartable.
+  pack: model-packs/unit-dependency-reach
+
+  given:
+    entities:
+      - id: web
+        type: unit
+        properties:
+          - name: startable
+          - name: degraded
+          - name: storage_fault
+      - id: srv-data
+        type: mount
+        properties:
+          - name: available
+            value: false
+      - id: srv-logs
+        type: mount
+        properties:
+          - name: available
+            value: false
+
+    relationships:
+      - { id: M1, type: mounts, from: web, to: srv-data }
+      - { id: M2, type: mounts, from: web, to: srv-logs }
+
+  expect:
+    properties:
+      - subject: web.startable
+        value: false
+        status: INFERRED
+      - subject: web.degraded
+        value: true
+        status: INFERRED
+      # R003 fires here too: two unavailable mounts is at least two.
+      - subject: web.storage_fault
+        value: true
+        status: INFERRED
+    rules_fired: 3

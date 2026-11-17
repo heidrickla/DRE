@@ -1,0 +1,48 @@
+# Prediction recorded before pack completion:
+# - Expected asserted properties:
+#   incident-001.incident_open = true / INFERRED.
+#   incident-001.name_resolution_status = failed / INFERRED.
+#   incident-001.root_cause = dns_failure / INFERRED.
+#   incident-001.explained_root_cause = DNS / INFERRED.
+# - Expected rules to fire: R001, R012, R100. No network/TLS/dependency rules
+#   should fire because their inputs are unknown.
+# - Least certain: whether explanations can rank with most observations unknown.
+#   I expect DNS to win because it has one supported mechanism with two explained
+#   observations and the others mostly require unsupported mechanisms.
+experiment:
+  id: web-outage-001-dns
+  description: Straightforward outage where DNS answers but does not resolve the app.
+  pack: model-packs/internal-web-outage
+
+  given:
+    now: 1000
+    entities:
+      - id: incident-001
+        type: incident
+        properties:
+          - name: user_reports_unavailable
+            value: true
+            status: KNOWN
+          - name: dns_query_answered
+            value: true
+            status: KNOWN
+          - name: dns_resolves_app
+            value: false
+            status: KNOWN
+
+  expect:
+    properties:
+      - subject: incident-001.incident_open
+        value: true
+        status: INFERRED
+      - subject: incident-001.name_resolution_status
+        value: failed
+        status: INFERRED
+      - subject: incident-001.root_cause
+        value: dns_failure
+        status: INFERRED
+      - subject: incident-001.explained_root_cause
+        value: DNS
+        status: INFERRED
+    rules_fired: 3
+    states_expanded: 0

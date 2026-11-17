@@ -1,0 +1,10 @@
+{
+  "experiment": "web-outage-004-findings",
+  "input": "7eb0ae1f2538ab8a02f3462ac227e60b20dccec6eb1a43d17548c8f49163c2df",
+  "model": "4967ce3e6fead0c2e06e16165f19686425003134cc41d421027da76245236770",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "7c9920aa6f4f06a119128cf3da77863bcbc2a67f14caedb0da37fb0c2517eb84",
+  "proof": "061597f1093c12473c7b12a2b5242fe8ac80cc06041b3be2e6c8ee43b72e25cb",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

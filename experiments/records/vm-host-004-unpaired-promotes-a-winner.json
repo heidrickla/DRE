@@ -1,0 +1,10 @@
+{
+  "experiment": "vm-host-004-unpaired-promotes-a-winner",
+  "input": "779d648a7c57689e637b391ba768ed2c2ec560d6707676ea70ac63d61bd816b7",
+  "model": "eb4d70344c159452f7da3faa7e747656e0bb832dc38e3b1781247224452d31ac",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "35f8dbdf4b9a6e4b619bb14a44c61de990ccb1ad8e9cad2d10eefed9655e2558",
+  "proof": "29eaa371dab2d5b1e0eaf91d899a54282022ecd10e09f170a7b0c4f1f21f064a",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

@@ -1,0 +1,185 @@
+# Prediction recorded before pack completion:
+# - Expected asserted properties:
+#   incident-002.incident_open = true / INFERRED.
+#   incident-002.name_resolution_status = ok / INFERRED.
+#   incident-002.network_path_status = ok / INFERRED.
+#   incident-002.tls_status = no_answer / INFERRED. This is deliberately not
+#   predicted as tls_failure because a timed-out certificate probe says nothing
+#   about certificate quality.
+#   incident-002.db_lag_margin = 870 / INFERRED.
+#   incident-002.ad_lag_margin = 1500 / INFERRED.
+#   incident-002.dependency_status = CONFLICTING, because R050 and R051 infer
+#   different database states from simultaneously true facts.
+#   incident-002.auth_dependency_status = CONFLICTING, because R060 and R061
+#   infer different directory states from simultaneously true facts.
+#   incident-002.root_cause = CONFLICTING, because R104 and R105 both infer
+#   plausible but different root-cause candidates.
+#   incident-002.explained_root_cause = DIRECTORY / INFERRED.
+# - Expected rules to fire: R001, R010, R020, R030, R050, R051, R060, R061,
+#   R104, R105. R040 should not fire because tls_status is no_answer, not ok.
+# - Least certain: the explanation score. I expect DIRECTORY to narrowly beat
+#   DATABASE because it explains auth_error_seen as correlated support with
+#   ad_lag_high, while DATABASE explains two database observations. If the
+#   engine penalizes unexplained healthy observations differently than I read
+#   the brief, this may be wrong.
+# - Domain caveat: I believe a single ranked DIRECTORY answer is too tidy here.
+#   A real engineer should keep database and directory accounts open and ask
+#   for a separating observation, such as a local DB login from the web tier
+#   and an LDAP bind from a non-app host.
+experiment:
+  id: web-outage-002-competing-dependencies
+  description: Ambiguous outage with open path, no TLS inspection answer, and both data and directory dependency signals.
+  pack: model-packs/internal-web-outage
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+    sources:
+      - id: user-call
+        reliability: 900
+        independence_group: human-report
+      - id: dns-probe
+        reliability: 900
+        independence_group: network-probes
+      - id: tcp-probe
+        reliability: 900
+        independence_group: network-probes
+      - id: tls-probe
+        reliability: 850
+        independence_group: network-probes
+      - id: app-monitor
+        reliability: 850
+        independence_group: monitoring
+      - id: db-check
+        reliability: 900
+        independence_group: dependency-checks
+      - id: directory-check
+        reliability: 900
+        independence_group: dependency-checks
+      - id: helpdesk
+        reliability: 820
+        independence_group: human-report
+    entities:
+      - id: incident-002
+        type: incident
+        properties: []
+    evidence:
+      - id: E001
+        subject: incident-002
+        predicate: user_reports_unavailable
+        value: true
+        source: user-call
+        reliability: 900
+        observed_at: 998
+      - id: E010
+        subject: incident-002
+        predicate: dns_query_answered
+        value: true
+        source: dns-probe
+        reliability: 900
+        observed_at: 996
+      - id: E011
+        subject: incident-002
+        predicate: dns_resolves_app
+        value: true
+        source: dns-probe
+        reliability: 900
+        observed_at: 996
+      - id: E020
+        subject: incident-002
+        predicate: app_ip_reachable
+        value: true
+        source: tcp-probe
+        reliability: 900
+        observed_at: 996
+      - id: E021
+        subject: incident-002
+        predicate: tcp_443_open
+        value: true
+        source: tcp-probe
+        reliability: 900
+        observed_at: 996
+      - id: E030
+        subject: incident-002
+        predicate: tls_probe_answered
+        value: false
+        source: tls-probe
+        reliability: 850
+        observed_at: 996
+      - id: E040
+        subject: incident-002
+        predicate: web_health_reported_ok
+        value: true
+        source: app-monitor
+        reliability: 850
+        observed_at: 700
+      - id: E050
+        subject: incident-002
+        predicate: db_connectivity_ok
+        value: false
+        source: db-check
+        reliability: 900
+        observed_at: 997
+      - id: E051
+        subject: incident-002
+        predicate: db_replica_lag_seconds
+        value: 900
+        source: db-check
+        reliability: 900
+        observed_at: 997
+      - id: E060
+        subject: incident-002
+        predicate: ldap_bind_ok
+        value: false
+        source: directory-check
+        reliability: 900
+        observed_at: 997
+      - id: E061
+        subject: incident-002
+        predicate: ad_replication_lag_seconds
+        value: 1800
+        source: directory-check
+        reliability: 900
+        observed_at: 997
+      - id: E062
+        subject: incident-002
+        predicate: auth_error_seen
+        value: true
+        source: helpdesk
+        reliability: 820
+        observed_at: 998
+
+  expect:
+    properties:
+      - subject: incident-002.incident_open
+        value: true
+        status: INFERRED
+      - subject: incident-002.name_resolution_status
+        value: ok
+        status: INFERRED
+      - subject: incident-002.network_path_status
+        value: ok
+        status: INFERRED
+      - subject: incident-002.tls_status
+        value: no_answer
+        status: INFERRED
+      - subject: incident-002.db_lag_margin
+        value: {fixed: "870"}
+        status: INFERRED
+      - subject: incident-002.ad_lag_margin
+        value: {fixed: "1500"}
+        status: INFERRED
+      - subject: incident-002.dependency_status
+        status: CONFLICTING
+      - subject: incident-002.auth_dependency_status
+        status: CONFLICTING
+      - subject: incident-002.root_cause
+        status: CONFLICTING
+      - subject: incident-002.explained_root_cause
+        value: DIRECTORY
+        status: INFERRED
+    rules_fired: 10
+    states_expanded: 0

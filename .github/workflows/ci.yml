@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  check:
+    name: Build, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The toolchain comes from rust-toolchain.toml. Once that is pinned
+      # to an exact version, CI and local builds use the same compiler --
+      # which matters, because the compiler is part of the engine identity.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Before anything compiles, because a line ending is part of a hash
+      # here. `ModelHash` is computed over the raw bytes of a model pack, so
+      # the CRLF and LF versions of a pack are different models — a Windows
+      # checkout that drifted would produce different hashes from this one,
+      # and every cross-machine replay would fail while every file looked
+      # identical. `.gitattributes` pins `eol=lf`; this checks the pin held.
+      - name: Line endings
+        run: python3 tools/check-line-endings.py
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace
+
+  determinism:
+    name: Determinism smoke test
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --workspace --release
+
+      # Cross-PROCESS determinism. The phase 1 acceptance test runs inside
+      # one process, so it cannot catch anything that varies between
+      # processes -- address-space layout reaching a hash, a lazily
+      # initialised static, an environment read. Separate invocations can.
+      #
+      # Note that a single runner image cannot test cross-machine
+      # determinism at all; that is out of scope (docs/determinism.md).
+      - name: Engine hash is stable across processes
+        run: |
+          first=$(cargo run --release --quiet --bin dre -- engine | grep 'engine hash:')
+          second=$(cargo run --release --quiet --bin dre -- engine | grep 'engine hash:')
+          echo "run 1: $first"
+          echo "run 2: $second"
+          if [ "$first" != "$second" ]; then
+            echo "::error::engine hash differed between two processes"
+            exit 1
+          fi
+
+      # The workload hash must agree across processes AND across seeds.
+      # Differing seeds build the same problem in different orders, so all
+      # four values below must be identical.
+      - name: Workload hash is stable across processes and construction orders
+        run: |
+          a=$(cargo run --release --quiet -p dre-conformance --bin workload-hash -- 0)
+          b=$(cargo run --release --quiet -p dre-conformance --bin workload-hash -- 0)
+          c=$(cargo run --release --quiet -p dre-conformance --bin workload-hash -- 99)
+          d=$(cargo run --release --quiet -p dre-conformance --bin workload-hash -- 123456789)
+          echo "seed 0     (run 1): $a"
+          echo "seed 0     (run 2): $b"
+          echo "seed 99           : $c"
+          echo "seed 123456789    : $d"
+          if [ "$a" != "$b" ]; then
+            echo "::error::workload hash differed between two processes at the same seed"
+            exit 1
+          fi
+          if [ "$a" != "$c" ] || [ "$a" != "$d" ]; then
+            echo "::error::workload hash depends on construction order"
+            exit 1
+          fi

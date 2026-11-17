@@ -1,0 +1,7 @@
+goals:
+  - id: REACH_YARD
+    description: Get the truck to the yard.
+    conditions:
+      - subject: truck.at
+        operator: EQ
+        operand: YARD

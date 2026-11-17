@@ -1,0 +1,70 @@
+observations:
+  - id: weak_crypto
+    description: Endpoint security policy is not acceptable.
+    when:
+      subject: endpoint.mode_policy_ok
+      operator: EQ
+      operand: false
+
+  - id: expired_token
+    description: Secure channel token requires renewal.
+    when:
+      subject: channel.renew_required
+      operator: EQ
+      operand: true
+
+  - id: cert_not_trusted
+    description: The application instance certificate is not trusted.
+    when:
+      subject: cert.trust_ok
+      operator: EQ
+      operand: false
+
+  - id: weak_identity
+    description: The user session is weak or denied.
+    when:
+      any:
+        - subject: session.session_assurance
+          operator: EQ
+          operand: weak
+        - subject: session.session_assurance
+          operator: EQ
+          operand: denied
+
+  - id: high_risk_request
+    description: The requested operation is high risk.
+    when:
+      subject: operation.request_risk
+      operator: EQ
+      operand: high
+
+hypotheses:
+  - id: LEGACY_ENDPOINT
+    description: The server is still presenting legacy endpoint and identity posture.
+    mechanisms:
+      - id: weak_endpoint_profile
+        explains: [weak_crypto]
+      - id: weak_session_surface
+        explains: [weak_identity]
+
+  - id: STALE_TOKEN
+    description: The access failure is primarily a secure-channel lifecycle issue.
+    mechanisms:
+      - id: token_lifecycle
+        explains: [expired_token]
+
+  - id: BAD_CERT
+    description: The access failure is primarily a PKI trust problem.
+    mechanisms:
+      - id: pki_rejection
+        explains: [cert_not_trusted]
+
+  - id: SAFETY_WRITE_REVIEW
+    description: The channel and identity may be usable, but the requested write needs review.
+    mechanisms:
+      - id: safety_control_change
+        explains: [high_risk_request]
+      - id: weak_operator_assurance
+        explains: [weak_identity]
+
+rank_into: operation.preferred_explanation

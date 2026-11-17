@@ -1,0 +1,77 @@
+# Two explanations, and the pack deliberately does not say which to prefer.
+#
+# R030 concludes POWER from a low rail and three degraded sensors. R040
+# concludes THERMAL from one high temperature. Both are reasonable rules in
+# isolation and a modeller would write both.
+#
+# The engine has no way to say that POWER explains four observations and
+# THERMAL explains one. That is the point of the experiment, not an
+# oversight in the pack.
+
+rules:
+  - id: R001
+    description: A rail below 200 is a power fault.
+    if:
+      - subject: boiler-1.rail_voltage
+        operator: LT
+        operand: 200
+    infer:
+      - subject: boiler-1.power_fault
+        value: true
+    priority: 100
+
+  - id: R010
+    description: Three sensors complaining at once is degradation, not coincidence.
+    if:
+      - subject: boiler-1.temp_sensor_error
+        operator: EQ
+        operand: true
+      - subject: boiler-1.pressure_sensor_error
+        operator: EQ
+        operand: true
+      - subject: boiler-1.flow_sensor_error
+        operator: EQ
+        operand: true
+    infer:
+      - subject: boiler-1.sensors_degraded
+        value: true
+    priority: 100
+
+  - id: R020
+    description: Above ninety is overheating.
+    if:
+      - subject: boiler-1.temperature
+        operator: GT
+        operand: 90
+    infer:
+      - subject: boiler-1.overheating
+        value: true
+    priority: 100
+
+  - id: R030
+    description: A low rail with degraded sensors is a power failure.
+    if:
+      - subject: boiler-1.power_fault
+        operator: EQ
+        operand: true
+      - subject: boiler-1.sensors_degraded
+        operator: EQ
+        operand: true
+    infer:
+      - subject: boiler-1.root_cause
+        value: POWER
+    priority: 200
+
+  - id: R040
+    description: >-
+      Overheating is a thermal failure. The seductive rule -- correct in
+      isolation, and wrong here, because the thing that makes it fire is one
+      observation against four.
+    if:
+      - subject: boiler-1.overheating
+        operator: EQ
+        operand: true
+    infer:
+      - subject: boiler-1.root_cause
+        value: THERMAL
+    priority: 200

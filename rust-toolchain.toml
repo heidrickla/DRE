@@ -1,0 +1,13 @@
+[toolchain]
+# Pinned deliberately. The compiler is part of the engine identity: a
+# toolchain bump can change optimisation decisions and, in principle,
+# observable behaviour, so a replay record produced under one compiler is
+# not strictly comparable to one produced under another. Tracking "stable"
+# would mean the toolchain moves under the project with no record of it
+# having moved.
+#
+# Pinned from the first successful build.
+# Changing this is a deliberate act: record it in docs/decisions.md and
+# expect stored replay records to need re-recording.
+channel = "1.97.1"
+components = ["rustfmt", "clippy"]

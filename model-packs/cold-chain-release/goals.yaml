@@ -1,0 +1,6 @@
+goals:
+  - id: RELEASE_AUTHORIZED
+    conditions:
+      - subject: shipment.release_authorized
+        operator: EQ
+        operand: true

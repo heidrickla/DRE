@@ -1,0 +1,144 @@
+experiment:
+  id: cold-chain-release-002
+  description: >-
+    Contested telemetry plus multiple independent exceptions should compose into
+    a recovery requirement and a non-obvious least-cost release plan.
+  pack: model-packs/cold-chain-release
+
+  given:
+    now: 2000
+    entities:
+      - id: shipment
+        type: shipment
+        properties:
+          - name: declared_weight_kg
+            value: {fixed: "100"}
+            status: KNOWN
+          - name: measured_weight_kg
+            value: {fixed: "108"}
+            status: KNOWN
+          - name: target_temp_c
+            value: {fixed: "4"}
+            status: KNOWN
+          - name: delay_minutes
+            value: 150
+            status: KNOWN
+          - name: sla_minutes
+            value: 120
+            status: KNOWN
+          - name: documents_complete
+            value: false
+            status: KNOWN
+          - name: docs_verified
+            value: false
+            status: KNOWN
+          - name: custody_verified
+            value: false
+            status: KNOWN
+          - name: inspection_complete
+            value: false
+            status: KNOWN
+          - name: override_used
+            value: false
+            status: KNOWN
+          - name: release_authorized
+            value: false
+            status: KNOWN
+          - name: standard_release_eligible
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: probe-a
+        reliability: 950
+        independence_group: probe-a-group
+      - id: probe-b
+        reliability: 920
+        independence_group: probe-b-group
+      - id: probe-c
+        reliability: 940
+        independence_group: probe-c-group
+
+    evidence:
+      - id: E101
+        subject: shipment
+        predicate: cargo_temp_c
+        value: {fixed: "8.5"}
+        source: probe-a
+        reliability: 940
+        observed_at: 1995
+      - id: E102
+        subject: shipment
+        predicate: cargo_temp_c
+        value: {fixed: "8.5"}
+        source: probe-b
+        reliability: 910
+        observed_at: 1996
+      - id: E103
+        subject: shipment
+        predicate: cargo_temp_c
+        value: {fixed: "5"}
+        source: probe-c
+        reliability: 930
+        observed_at: 1997
+
+  expect:
+    properties:
+      - subject: shipment.cargo_temp_c
+        value: {fixed: "8.5"}
+        status: KNOWN
+      - subject: shipment.temp_deviation_c
+        value: {fixed: "4.5"}
+        status: INFERRED
+      - subject: shipment.temperature_status
+        value: excursion
+        status: INFERRED
+      - subject: shipment.weight_variance_ratio
+        value: {fixed: "0.08"}
+        status: INFERRED
+      - subject: shipment.weight_status
+        value: mismatch
+        status: INFERRED
+      - subject: shipment.delay_ratio
+        value: {fixed: "1.25"}
+        status: INFERRED
+      - subject: shipment.delay_status
+        value: delayed
+        status: INFERRED
+      - subject: shipment.manual_review_required
+        value: true
+        status: INFERRED
+      - subject: shipment.quarantine_required
+        value: true
+        status: INFERRED
+      - subject: shipment.temp_inspection_required
+        value: true
+        status: INFERRED
+      - subject: shipment.custody_audit_required
+        value: true
+        status: INFERRED
+      - subject: shipment.recovery_required
+        value: true
+        status: INFERRED
+      # The author's original expectation here was
+      #   - subject: shipment.release_authorized
+      #     value: true
+      # which asserts the world *after* the plan has been carried out. The
+      # planner does not carry plans out: it searches over a copy of the
+      # state and returns a sequence, so this property still holds its
+      # pre-plan value and the expectation could never pass.
+      #
+      # Corrected to assert the plan, which is what the expectation meant
+      # and is the stronger claim -- it names the actions and their order,
+      # not merely how many there are.
+    plan:
+      - OBTAIN_DOCUMENTS
+      - VERIFY_DOCUMENTS
+      - COMPLETE_TEMP_INSPECTION
+      - COMPLETE_CUSTODY_AUDIT
+      - REVIEW_AUTHORIZE

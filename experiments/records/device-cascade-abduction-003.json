@@ -1,0 +1,10 @@
+{
+  "experiment": "device-cascade-abduction-003",
+  "input": "455af89f67461ee50a067bda21d111b2a2ce587f5281e1044196cd93dad0fe89",
+  "model": "1811d80899bf23a0cfb4955fb9bbbf078b5015aac5b2ebec2e2f55c0831d9737",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "7bae585ac0153d9e21ec5f6316897f4d35c63a6f62b1dea48dd14d9e9e2ef38d",
+  "proof": "cff2c3d7c3d03e5d5e6a35dc366f36dccd12ce13a06b6528d03e0efb0013d2f4",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

@@ -1,0 +1,94 @@
+entities:
+  host:
+    properties:
+      is_domain_controller:
+        type: boolean
+      handles_interactive_logons:
+        type: boolean
+      latest_security_update_installed:
+        type: boolean
+      days_since_patch:
+        type: integer
+        min: 0
+      uptime_hours:
+        type: integer
+        min: 0
+      pending_reboot_flags_count:
+        type: integer
+        min: 0
+      cbs_reboot_pending:
+        type: boolean
+      wu_reboot_pending:
+        type: boolean
+      file_rename_pending:
+        type: boolean
+      dsc_drift_detected:
+        type: boolean
+      gpupdate_pending:
+        type: boolean
+      update_cache_corrupt:
+        type: boolean
+      ad_replication_failures:
+        type: integer
+        min: 0
+      critical_service_failures:
+        type: integer
+        min: 0
+      gpo_age_hours:
+        type: integer
+        min: 0
+      maintenance_window_open:
+        type: boolean
+      business_hours:
+        type: boolean
+      peer_dc_available:
+        type: boolean
+      change_ticket_open:
+        type: boolean
+      reboot_scheduled:
+        type: boolean
+      reboot_completed:
+        type: boolean
+      reboot_required:
+        type: boolean
+      reboot_flag_pressure:
+        type: fixed
+      patch_age_pressure:
+        type: fixed
+      uptime_pressure:
+        type: fixed
+      admin_risk_score:
+        type: fixed
+      ad_risk_score:
+        type: fixed
+      service_risk_score:
+        type: fixed
+      patch_compliance_state:
+        type: symbol
+        values: [current, drift, overdue, stale, unknown]
+      gpo_state:
+        type: symbol
+        values: [fresh, stale]
+      directory_health:
+        type: symbol
+        values: [healthy, degraded]
+      service_health:
+        type: symbol
+        values: [healthy, degraded]
+      reboot_urgency:
+        type: symbol
+        values: [none, medium, high, critical]
+      reboot_readiness:
+        type: symbol
+        values: [ready, blocked-by-service, blocked-by-domain-role, blocked-by-window, conflicted]
+      admin_action_state:
+        type: symbol
+        values: [monitor, patch-required, reboot-required, investigate-first]
+      likely_root_cause:
+        type: symbol
+        values: [pending-reboot, patch-gap, directory-health, service-health, configuration-drift]
+
+relationships:
+  depends_on:
+    from: host
+    to: host

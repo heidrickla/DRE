@@ -1,0 +1,18 @@
+model:
+  id: device-cascade-abduction
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    The device-cascade domain again, with the diagnosis moved out of the
+    rules and into a declared explanation layer.
+
+    `model-packs/device-cascade` is deliberately left alone. It is the
+    evidence that rules alone cannot do this: two correct rules conclude
+    two different root causes and the property merges to CONFLICTING. That
+    result is the reason this pack exists, so overwriting it would destroy
+    the finding and leave only the fix.
+
+    The difference between the two packs is exactly one idea. There, R030
+    and R040 each assert a root cause and neither can weigh itself against
+    the other. Here nothing asserts a root cause at all: the pack declares
+    what would have to be true for each account, and the engine ranks them.

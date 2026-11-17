@@ -1,0 +1,15 @@
+# Types banned from engine crates because they introduce nondeterminism.
+#
+# HashMap/HashSet use RandomState, which is seeded per process. Iteration
+# order therefore differs between runs of the same binary on the same input,
+# which is precisely the failure mode the determinism conformance suite
+# (docs/determinism.md, plan section 21) is designed to catch.
+#
+# Instant/SystemTime introduce wall-clock dependency. Timing may be measured
+# for benchmarks, but must never influence a decision.
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "nondeterministic iteration order; use dre_core::collections::DetMap" },
+    { path = "std::collections::HashSet", reason = "nondeterministic iteration order; use dre_core::collections::DetSet" },
+    { path = "std::time::Instant", reason = "wall-clock dependency; decisions must not observe time" },
+    { path = "std::time::SystemTime", reason = "wall-clock dependency; decisions must not observe time" },
+]

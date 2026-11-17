@@ -1,0 +1,20 @@
+[package]
+name = "dre-geometry"
+description = "Phase 6: geometric reasoner. Fixed-point state-space distance, regions, and boundaries."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-model = { workspace = true }
+dre-proof = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,145 @@
+# The other answer, from the same pack.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# The rail reads 240, so `undervoltage` is definitely FALSE rather than
+# undecided, and POWER's leading mechanism is contradicted rather than
+# merely unsupported. Five observations hold: four subsystem errors and
+# overheating.
+#
+#   THERMAL  1.15   coverage 2.00, less 0.75 for three unexplained and 0.10
+#                   for two mechanisms
+#   POWER   -0.60   coverage 1.75 from the bus alone, less 2.00 for the
+#                   refuted rail claim, 0.25 for one unexplained and 0.10
+#                   for two mechanisms
+#
+# `root_cause` = THERMAL. The four subsystem errors are still there and
+# still correlated; they are simply no longer enough once the account that
+# would explain them has been refuted where it is checkable.
+
+experiment:
+  id: device-cascade-abduction-003
+  description: >-
+    The same pack, the other answer. The rail is healthy at 240 and the
+    device is genuinely hot, so the account that was losing should now win.
+
+    This is the experiment that makes the other two mean anything. A pack
+    whose ranking always returned POWER would be indistinguishable from one
+    that had the answer written into it, and nothing in the first two
+    experiments could tell the difference.
+  pack: model-packs/device-cascade-abduction
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # Independent instrument on its own supply. This one is telling the
+      # truth about the rail.
+      - id: vm-3
+        reliability: 900
+
+      # The controller and the thermocouple are both powered by rail A.
+      # One failure, one voice -- which is what the group declares.
+      - id: controller-a
+        reliability: 900
+        independence_group: rail-a
+      - id: tc-17
+        reliability: 900
+        independence_group: rail-a
+
+      # A different instrument on a different supply, reading a genuinely
+      # elevated temperature. This is the misleading independent
+      # observation: true, relevant, and not the root cause.
+      - id: ir-22
+        reliability: 900
+
+      - id: door-sw
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: boiler-1
+        predicate: rail_voltage
+        value: 240
+        source: vm-3
+        reliability: 900
+        observed_at: 990
+
+      # The cascade. Four symptoms, one cause, all on rail A.
+      - id: E010
+        subject: boiler-1
+        predicate: temp_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E011
+        subject: boiler-1
+        predicate: pressure_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E012
+        subject: boiler-1
+        predicate: flow_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E013
+        subject: boiler-1
+        predicate: comms_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+
+      # The defective reading. 9999 against a declared max of 200.
+      - id: E020
+        subject: boiler-1
+        predicate: temperature
+        value: 95
+        source: tc-17
+        reliability: 900
+        observed_at: 990
+
+      # The valid one, from a healthy instrument.
+      - id: E021
+        subject: boiler-1
+        predicate: temperature
+        value: 95
+        source: ir-22
+        reliability: 900
+        observed_at: 990
+
+      # Unrelated to the rail, and true.
+      - id: E030
+        subject: boiler-1
+        predicate: door_open
+        value: false
+        source: door-sw
+        reliability: 900
+        observed_at: 990
+
+    entities:
+      - id: boiler-1
+        type: device
+        properties:
+          # The missing observation. Nothing measures it and nothing
+          # derives it.
+          - name: coolant_level
+          - name: power_fault
+          - name: sensors_degraded
+          - name: overheating
+          - name: root_cause
+
+  expect:
+    properties:
+      - subject: boiler-1.root_cause
+        value: THERMAL
+        status: INFERRED

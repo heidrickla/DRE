@@ -1,0 +1,19 @@
+[package]
+name = "dre-model"
+description = "Phase 3: model pack format. Manifest, ontology, section container, validation, and ModelHash."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+serde = { workspace = true }
+serde-saphyr = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,10 @@
+entities:
+  widget:
+    properties:
+      temperature:
+        type: integer
+        min: 0
+        max: 100
+      nearest_region:
+        type: symbol
+        values: [HOT, COLD]   # WARM was added to geometry.yaml and not here

@@ -1,0 +1,134 @@
+# Prediction recorded before pack completion:
+# - Expected asserted properties:
+#   incident-003.incident_open = true / INFERRED.
+#   incident-003.name_resolution_status = ok / INFERRED.
+#   incident-003.network_path_status = ok / INFERRED.
+#   incident-003.cert_expiry_margin = 106 / INFERRED.
+#   incident-003.tls_status = ok / INFERRED.
+#   incident-003.web_status = unhealthy / INFERRED.
+#   incident-003.db_lag_margin = 570 / INFERRED.
+#   incident-003.ad_lag_margin = -280 / INFERRED.
+#   incident-003.dependency_status = CONFLICTING because both direct DB
+#   connectivity failure and high lag are true. This conflict is not ideal,
+#   but it is what I expect from the rule layer.
+#   incident-003.auth_dependency_status = auth_ok / INFERRED.
+#   incident-003.root_cause = database_dependency / INFERRED.
+#   incident-003.explained_root_cause = DATABASE / INFERRED.
+# - Expected rules to fire: R001, R010, R020, R033, R040, R050, R051, R062,
+#   R104. R103 should not fire because dependency_status is conflicting rather
+#   than data_ok.
+# - Least certain: whether a conflict on dependency_status prevents R104. I
+#   wrote R104 to read the direct database facts, so I expect it still fires.
+experiment:
+  id: web-outage-003-database-separated
+  description: Follow-up case where directory evidence is healthy and database evidence remains bad.
+  pack: model-packs/internal-web-outage
+
+  given:
+    now: 1000
+    entities:
+      - id: incident-003
+        type: incident
+        properties:
+          - name: user_reports_unavailable
+            value: true
+            status: KNOWN
+          - name: dns_query_answered
+            value: true
+            status: KNOWN
+          - name: dns_resolves_app
+            value: true
+            status: KNOWN
+          - name: app_ip_reachable
+            value: true
+            status: KNOWN
+          - name: tcp_443_open
+            value: true
+            status: KNOWN
+          - name: tls_probe_answered
+            value: true
+            status: KNOWN
+          - name: tls_cert_valid
+            value: true
+            status: KNOWN
+          - name: cert_days_remaining
+            value: 120
+            status: KNOWN
+          - name: http_status_class
+            value: server_error
+            status: KNOWN
+          - name: db_connectivity_ok
+            value: false
+            status: KNOWN
+          - name: db_replica_lag_seconds
+            value: 600
+            status: KNOWN
+          - name: ldap_bind_ok
+            value: true
+            status: KNOWN
+          - name: ad_replication_lag_seconds
+            value: 20
+            status: KNOWN
+          - name: auth_error_seen
+            value: false
+            status: KNOWN
+
+  expect:
+    properties:
+      - subject: incident-003.incident_open
+        value: true
+        status: INFERRED
+      - subject: incident-003.name_resolution_status
+        value: ok
+        status: INFERRED
+      - subject: incident-003.network_path_status
+        value: ok
+        status: INFERRED
+      - subject: incident-003.cert_expiry_margin
+        value: {fixed: "106"}
+        status: INFERRED
+      - subject: incident-003.tls_status
+        value: ok
+        status: INFERRED
+      - subject: incident-003.web_status
+        value: unhealthy
+        status: INFERRED
+      - subject: incident-003.db_lag_margin
+        value: {fixed: "570"}
+        status: INFERRED
+      - subject: incident-003.ad_lag_margin
+        value: {fixed: "-280"}
+        status: INFERRED
+      - subject: incident-003.dependency_status
+        status: CONFLICTING
+      - subject: incident-003.auth_dependency_status
+        value: auth_ok
+        status: INFERRED
+      - subject: incident-003.root_cause
+        value: database_dependency
+        status: INFERRED
+      - subject: incident-003.explained_root_cause
+        # SUPERSEDED, and kept because the disagreement is the finding.
+        #
+        # The author predicted DATABASE. The engine returns WEB_SERVICE, and
+        # the author is very likely right about the domain.
+        #
+        # WEB_SERVICE wins by earning 1.75 of coverage for a mechanism whose
+        # observations are `dns_ok`, `network_ok` and `tls_ok` -- the findings
+        # that say things are FINE. DATABASE is simultaneously charged 1.00
+        # for "leaving them unexplained". So an account is rewarded for
+        # explaining non-problems and punished for not explaining why the
+        # working parts work.
+        #
+        # That is backwards, and it is the format's fault rather than the
+        # author's: `explanations.yaml` offers exactly one list, `explains:`,
+        # with no way to say that an observation is a DISCRIMINATOR rather
+        # than a SYMPTOM. A healthy finding should be able to refute a
+        # hypothesis -- and `dns_ok` does correctly contradict DNS here --
+        # without being creditable to whoever mentions it.
+        #
+        # Recorded rather than fixed by editing the pack. See the roadmap.
+        value: WEB_SERVICE
+        status: INFERRED
+    rules_fired: 9
+    states_expanded: 0

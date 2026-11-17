@@ -1,0 +1,160 @@
+rules:
+  - id: R001-temp-normal
+    description: Temperature deviation within two degrees is normal.
+    if:
+      - subject: shipment.temp_deviation_c
+        operator: LTE
+        operand: {fixed: "2"}
+    infer:
+      - subject: shipment.temperature_status
+        value: normal
+    priority: 100
+
+  - id: R002-temp-excursion
+    description: Temperature deviation above two degrees is an excursion.
+    if:
+      - subject: shipment.temp_deviation_c
+        operator: GT
+        operand: {fixed: "2"}
+    infer:
+      - subject: shipment.temperature_status
+        value: excursion
+    priority: 100
+
+  - id: R003-weight-match
+    description: Weight variance below five percent is treated as a match.
+    if:
+      - subject: shipment.weight_variance_ratio
+        operator: LT
+        operand: {fixed: "0.05"}
+    infer:
+      - subject: shipment.weight_status
+        value: match
+    priority: 100
+
+  - id: R004-weight-mismatch
+    description: Weight variance of five percent or more requires discrepancy handling.
+    if:
+      - subject: shipment.weight_variance_ratio
+        operator: GTE
+        operand: {fixed: "0.05"}
+    infer:
+      - subject: shipment.weight_status
+        value: mismatch
+    priority: 100
+
+  - id: R005-delay-on-time
+    description: A delay ratio below one remains within the allowance.
+    if:
+      - subject: shipment.delay_ratio
+        operator: LT
+        operand: {fixed: "1"}
+    infer:
+      - subject: shipment.delay_status
+        value: on-time
+    priority: 100
+
+  - id: R006-delay-exceeded
+    description: A delay ratio at or above one exceeds the allowance.
+    if:
+      - subject: shipment.delay_ratio
+        operator: GTE
+        operand: {fixed: "1"}
+    infer:
+      - subject: shipment.delay_status
+        value: delayed
+    priority: 100
+
+  - id: R007-standard-release-eligible
+    description: A clean shipment can take the standard release path.
+    if:
+      - subject: shipment.temperature_status
+        operator: EQ
+        operand: normal
+      - subject: shipment.weight_status
+        operator: EQ
+        operand: match
+      - subject: shipment.delay_status
+        operator: EQ
+        operand: on-time
+      - subject: shipment.documents_complete
+        operator: EQ
+        operand: true
+      - subject: shipment.custody_verified
+        operator: EQ
+        operand: true
+    infer:
+      - subject: shipment.standard_release_eligible
+        value: true
+    priority: 200
+
+  - id: R008-manual-review
+    description: Any material operational exception requires manual review.
+    if:
+      - any:
+          - subject: shipment.weight_status
+            operator: EQ
+            operand: mismatch
+          - subject: shipment.delay_status
+            operator: EQ
+            operand: delayed
+          - subject: shipment.documents_complete
+            operator: EQ
+            operand: false
+    infer:
+      - subject: shipment.manual_review_required
+        value: true
+    priority: 200
+
+  - id: R009-quarantine
+    description: A temperature excursion with unverified custody requires quarantine.
+    if:
+      - subject: shipment.temperature_status
+        operator: EQ
+        operand: excursion
+      - subject: shipment.custody_verified
+        operator: EQ
+        operand: false
+    infer:
+      - subject: shipment.quarantine_required
+        value: true
+    priority: 200
+
+  - id: R010-temperature-inspection
+    description: Every temperature excursion requires a physical temperature inspection.
+    if:
+      - subject: shipment.temperature_status
+        operator: EQ
+        operand: excursion
+    infer:
+      - subject: shipment.temp_inspection_required
+        value: true
+    priority: 200
+
+  - id: R011-custody-audit
+    description: Quarantine caused by an excursion and custody gap requires a custody audit.
+    if:
+      - subject: shipment.quarantine_required
+        operator: EQ
+        operand: true
+    infer:
+      - subject: shipment.custody_audit_required
+        value: true
+    priority: 300
+
+  - id: R012-recovery-required
+    description: Combined manual review and custody audit place the shipment on recovery workflow.
+    if:
+      - subject: shipment.manual_review_required
+        operator: EQ
+        operand: true
+      - subject: shipment.custody_audit_required
+        operator: EQ
+        operand: true
+      - subject: shipment.temp_inspection_required
+        operator: EQ
+        operand: true
+    infer:
+      - subject: shipment.recovery_required
+        value: true
+    priority: 400

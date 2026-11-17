@@ -1,0 +1,106 @@
+experiment:
+  id: checkout-layer-diagnosis-002
+  description: >-
+    Follow-up state after measuring shared datastore write latency. This is
+    identical to -001 except that the storage measurement has arrived.
+  pack: model-packs/checkout-layer-diagnosis
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+    sources:
+      - id: apm
+        reliability: 900
+        independence_group: telemetry
+      - id: lb-metrics
+        reliability: 860
+        independence_group: edge
+      - id: db-monitor
+        reliability: 900
+        independence_group: database
+      - id: storage-array
+        reliability: 920
+        independence_group: storage
+
+    entities:
+      - id: incident
+        type: incident
+        properties:
+          - name: api_baseline_p95_ms
+            value: 180
+            status: KNOWN
+          - name: db_baseline_p95_ms
+            value: 45
+            status: KNOWN
+          - name: datastore_baseline_write_p95_ms
+            value: 8
+            status: KNOWN
+          - name: db_lock_wait_ms
+            status: UNKNOWN
+          - name: hypervisor_cpu_ready_pct
+            status: UNKNOWN
+
+    evidence:
+      - id: E001
+        subject: incident
+        predicate: checkout_error_rate_pct
+        value: {fixed: "4.8"}
+        source: apm
+        reliability: 900
+        observed_at: 997
+      - id: E002
+        subject: incident
+        predicate: api_p95_ms
+        value: 760
+        source: apm
+        reliability: 900
+        observed_at: 997
+      - id: E003
+        subject: incident
+        predicate: app_pool_wait_pct
+        value: {fixed: "28.0"}
+        source: apm
+        reliability: 880
+        observed_at: 996
+      - id: E004
+        subject: incident
+        predicate: db_p95_ms
+        value: 235
+        source: db-monitor
+        reliability: 900
+        observed_at: 996
+      - id: E005
+        subject: incident
+        predicate: lb_app2_retry_share_pct
+        value: {fixed: "61.0"}
+        source: lb-metrics
+        reliability: 860
+        observed_at: 998
+      - id: E006
+        subject: incident
+        predicate: app2_health_flaps_10m
+        value: 4
+        source: lb-metrics
+        reliability: 860
+        observed_at: 998
+      - id: E007
+        subject: incident
+        predicate: datastore_write_p95_ms
+        value: 48
+        source: storage-array
+        reliability: 920
+        observed_at: 999
+
+  expect:
+    properties:
+      - subject: incident.datastore_write_latency_high
+        value: true
+        status: INFERRED
+      - subject: incident.root_cause
+        value: SHARED_STORAGE_STALL
+        status: INFERRED
+    rules_fired: 7
+    states_expanded: 0

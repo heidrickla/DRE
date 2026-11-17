@@ -1,0 +1,21 @@
+space:
+  subject: widget
+  classify_into: nearest_region   # FAULT 3: not declared in the ontology
+  dimensions:
+    - id: temperature
+      weight: 1
+    - id: humidity                # FAULT 4: not declared in the ontology
+      weight: 1
+
+regions:
+  - id: HOT
+    centroid:
+      temperature: 90
+      humidity: 10
+      pressure: 5                 # FAULT 5: the space has no such axis
+
+  # No fault, but a warning: no coordinate for `humidity`, which distance
+  # ranking silently treats as zero.
+  - id: COLD
+    centroid:
+      temperature: 10

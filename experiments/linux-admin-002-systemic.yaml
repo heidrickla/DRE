@@ -1,0 +1,207 @@
+# Prediction recorded before execution:
+# Expected asserted properties:
+# - backup.mount_active resolves to false because two fresh independent groups agree.
+# - backup.package_installed resolves to false because two fresh independent groups agree.
+# - backup.module_loaded resolves to false; the positive lsmod observation is stale and
+#   should not make the property CONFLICTING.
+# - backup.last_failure_age is INFERRED as fixed 15 and pressure_score as fixed 3.
+# - backup.recent_failure, required_mount_unavailable, dependency_failed,
+#   module_blocked, default_target_blocked, critical_chain_affected,
+#   service_not_startable, manual_repair_required are INFERRED true.
+# - backup.likely_state is INFERRED failed.
+# - backup.root_cause is expected to be SYSTEMIC_BOOT_PROBLEM.
+# Expected rules to fire: R001, R003, R004, R005, R007, R008, R009, R010, R012.
+# Expected features to compute: F001 and F002.
+# Least certain:
+# - Whether stale evidence is ignored before corroboration or still contributes a STALE status.
+# - Whether a derived observation such as module_unavailable can support explanations in the
+#   same run, since explanations execute after rules according to the brief.
+# - Whether the engine accepts type-subject rank_into (`unit.root_cause`) for explanations.
+# Domain caveat:
+# I believe SYSTEMIC_BOOT_PROBLEM is the right domain answer only if this is a single outage
+# wave. A real admin would also consider that three independent faults may be a bad snapshot
+# or bad monitoring, which the two-level hypothesis format cannot express.
+experiment:
+  id: linux-admin-002-systemic
+  description: A conflicting, multi-surface startup failure involving storage, package files, and kernel module state.
+  pack: model-packs/linux-admin
+
+  given:
+    now: 1000
+    entities:
+      - id: backup
+        type: unit
+        properties:
+          - name: boot_tick
+            value: 1000
+            status: KNOWN
+          - name: failure_tick
+            value: 985
+            status: KNOWN
+          - name: mount_pressure
+            value: {fixed: "1"}
+            status: KNOWN
+          - name: package_pressure
+            value: {fixed: "1"}
+            status: KNOWN
+          - name: module_pressure
+            value: {fixed: "1"}
+            status: KNOWN
+          - name: config_pressure
+            value: {fixed: "0"}
+            status: KNOWN
+          - name: unit_enabled
+            value: true
+            status: KNOWN
+          - name: unit_active
+            value: false
+            status: KNOWN
+          - name: fstab_entry_present
+            value: true
+            status: KNOWN
+          - name: module_required
+            value: true
+            status: KNOWN
+          - name: config_valid
+            value: true
+            status: KNOWN
+          - name: journal_dependency_error
+            value: true
+            status: KNOWN
+          - name: package_file_missing
+            value: true
+            status: KNOWN
+          - name: kernel_unknown_symbol
+            value: true
+            status: KNOWN
+          - name: permission_denied
+            value: false
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+    sources:
+      - id: systemd
+        reliability: 920
+        independence_group: systemd-state
+      - id: proc-mounts
+        reliability: 900
+        independence_group: kernel-vfs
+      - id: dpkg
+        reliability: 900
+        independence_group: package-db
+      - id: file-check
+        reliability: 870
+        independence_group: filesystem
+      - id: dmesg
+        reliability: 880
+        independence_group: kernel-log
+      - id: modprobe
+        reliability: 860
+        independence_group: module-loader
+      - id: lsmod
+        reliability: 830
+        independence_group: kernel-module-list
+      - id: journal
+        reliability: 850
+        independence_group: journal
+    evidence:
+      - id: E001
+        subject: backup
+        predicate: mount_active
+        value: false
+        source: systemd
+        reliability: 920
+        observed_at: 998
+      - id: E002
+        subject: backup
+        predicate: mount_active
+        value: false
+        source: proc-mounts
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: backup
+        predicate: package_installed
+        value: false
+        source: dpkg
+        reliability: 900
+        observed_at: 997
+      - id: E004
+        subject: backup
+        predicate: package_installed
+        value: false
+        source: file-check
+        reliability: 870
+        observed_at: 997
+      - id: E005
+        subject: backup
+        predicate: module_loaded
+        value: false
+        source: dmesg
+        reliability: 880
+        observed_at: 996
+      - id: E006
+        subject: backup
+        predicate: module_loaded
+        value: false
+        source: modprobe
+        reliability: 860
+        observed_at: 996
+      - id: E007
+        subject: backup
+        predicate: module_loaded
+        value: true
+        source: lsmod
+        reliability: 830
+        observed_at: 850
+      - id: E008
+        subject: backup
+        predicate: mount_timeout
+        value: true
+        source: journal
+        reliability: 850
+        observed_at: 996
+
+  expect:
+    properties:
+      - subject: backup.last_failure_age
+        value: {fixed: "15"}
+        status: INFERRED
+      - subject: backup.pressure_score
+        value: {fixed: "3"}
+        status: INFERRED
+      - subject: backup.recent_failure
+        value: true
+        status: INFERRED
+      - subject: backup.required_mount_unavailable
+        value: true
+        status: INFERRED
+      - subject: backup.dependency_failed
+        value: true
+        status: INFERRED
+      - subject: backup.module_blocked
+        value: true
+        status: INFERRED
+      - subject: backup.default_target_blocked
+        value: true
+        status: INFERRED
+      - subject: backup.critical_chain_affected
+        value: true
+        status: INFERRED
+      - subject: backup.service_not_startable
+        value: true
+        status: INFERRED
+      - subject: backup.likely_state
+        value: failed
+        status: INFERRED
+      - subject: backup.manual_repair_required
+        value: true
+        status: INFERRED
+      - subject: backup.root_cause
+        value: SYSTEMIC_BOOT_PROBLEM
+        status: INFERRED
+    rules_fired: 9
+    states_expanded: 0

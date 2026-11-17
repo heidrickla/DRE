@@ -1,0 +1,10 @@
+{
+  "experiment": "linux-admin-001-mount",
+  "input": "6957f6b3e618300bb9ed02795317d2fed2fbb6c0401599575577751e46b1aa36",
+  "model": "9016d8589b5a33bbeb398c6f5fcfd566390e50a4b87fab843e8c3d6f16307eb9",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "65efe5ad23bc84a74d3dee6fe61e872a7f14d56c3bee1baf22dab677156fef36",
+  "proof": "981f36df545d649b561768553eb2d77bef4a84a90faef944c613cb71dc5fe4b7",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

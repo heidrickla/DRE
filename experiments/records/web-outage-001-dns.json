@@ -1,0 +1,10 @@
+{
+  "experiment": "web-outage-001-dns",
+  "input": "1cc580c1697f74c48f38eea8092885a01de100783e617d46681499af4eae488d",
+  "model": "455f0e559a6aa52ab29e5f0fdfe53526646a3f38fb076b70a83de7624720b817",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "894f38951747c142a29ac3190ff9b1704556f5ae518f31975b4538b5f1ebc9b6",
+  "proof": "47c42c95da3f883c1a6507fc53ead4ee35cf76665576ccdc61cda52c150f4f84",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

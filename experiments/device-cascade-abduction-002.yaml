@@ -1,0 +1,152 @@
+# What an account costs when a step in it was never checked.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# `temperature` never arrives, so `overheating` is undecided rather than
+# false. THERMAL's leading mechanism is therefore an unsupported assumption
+# -- a step the story needs and nobody has confirmed -- which is charged for
+# separately from a refuted one.
+#
+#   POWER    2.65   coverage 2.75, less 0.10 for two mechanisms. Nothing is
+#                   left unexplained, because the temperature is not a live
+#                   observation and only live ones can be ignored
+#   THERMAL -0.60   coverage 1.00 from `heat_damage` alone, less 1.00 for
+#                   four unexplained, 0.10 for two mechanisms and 0.50 for
+#                   the assumption
+#
+# `root_cause` = POWER, by 3.25.
+#
+# WHAT THIS FILE WAS FIRST, AND WHY IT IS NOT
+# ===========================================
+# It mirrored `device-cascade-001` -- the spoiled thermocouple reading 9999
+# against a declared max of 200 -- on the prediction that excluding the
+# defective reading would leave the surviving one uncorroborated, so
+# `temperature` would not resolve and this same assumption path would be
+# taken.
+#
+# That was wrong, and it is the second time it has been got wrong here in
+# the same way. The single sound reading resolves to 95 [Inferred], the
+# temperature is known, and the experiment produced results identical to
+# `device-cascade-abduction-001` in every particular. Recorded rather than
+# quietly rewritten, because the mistake is a standing one: a rejected
+# reading is not a reading that reduces corroboration, and the resolver goes
+# on to answer from what is left.
+
+experiment:
+  id: device-cascade-abduction-002
+  description: >-
+    The instrument was asked about the temperature and did not answer, so
+    the account that depends on it rests on a step nobody has checked.
+
+    Mirrors `device-cascade-003`, where the failed read simply stopped the
+    seductive rule from firing. Here it does something a rule system cannot
+    express: it turns a mechanism into a declared assumption and charges for
+    it, which is a different statement from the rule quietly not firing.
+  pack: model-packs/device-cascade-abduction
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # Independent instrument on its own supply. This one is telling the
+      # truth about the rail.
+      - id: vm-3
+        reliability: 900
+
+      # The controller and the thermocouple are both powered by rail A.
+      # One failure, one voice -- which is what the group declares.
+      - id: controller-a
+        reliability: 900
+        independence_group: rail-a
+      - id: tc-17
+        reliability: 900
+        independence_group: rail-a
+
+      # A different instrument on a different supply, reading a genuinely
+      # elevated temperature. This is the misleading independent
+      # observation: true, relevant, and not the root cause.
+      - id: ir-22
+        reliability: 900
+
+      - id: door-sw
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: boiler-1
+        predicate: rail_voltage
+        value: 150
+        source: vm-3
+        reliability: 900
+        observed_at: 990
+
+      # The cascade. Four symptoms, one cause, all on rail A.
+      - id: E010
+        subject: boiler-1
+        predicate: temp_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E011
+        subject: boiler-1
+        predicate: pressure_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E012
+        subject: boiler-1
+        predicate: flow_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E013
+        subject: boiler-1
+        predicate: comms_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+
+      # Unrelated to the rail, and true.
+      - id: E030
+        subject: boiler-1
+        predicate: door_open
+        value: false
+        source: door-sw
+        reliability: 900
+        observed_at: 990
+
+    # The instrument was asked and did not answer. Not a reading, so it
+    # lives outside `evidence` and cannot reach resolution at all.
+    failed_reads:
+      - id: E020
+        subject: boiler-1
+        predicate: temperature
+        source: tc-17
+        reason: telemetry read timed out after three attempts
+        observed_at: 990
+
+    entities:
+      - id: boiler-1
+        type: device
+        properties:
+          # The missing observation. Nothing measures it and nothing
+          # derives it.
+          - name: coolant_level
+          - name: power_fault
+          - name: sensors_degraded
+          - name: overheating
+          - name: root_cause
+
+  expect:
+    properties:
+      - subject: boiler-1.root_cause
+        value: POWER
+        status: INFERRED

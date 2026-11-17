@@ -1,0 +1,70 @@
+# Two rules over a traversal, and the difference between them is one word.
+#
+# Neither names a mount. Both bind one `unit` and reach whatever that unit
+# mounts, which is why adding a fourth filesystem to the experiment needs no
+# change here -- the thing every author who collapsed a graph into one entity
+# was trying to buy.
+
+rules:
+  - id: R001
+    description: >-
+      A unit whose mounts are ALL unavailable cannot start. `every` is the
+      strong claim, and it is vacuously true of a unit that mounts nothing --
+      which is safe only because an anchor that fails to resolve is an error
+      rather than an empty set.
+    if:
+      - reach:
+          from: unit
+          path:
+            - edge: mounts
+              direction: out
+          read: available
+        collapse: every
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.startable
+        value: false
+    priority: 100
+
+  - id: R002
+    description: >-
+      A unit with ANY unavailable mount is degraded, which is the weaker and
+      more useful claim. One word apart from R001 and a different diagnosis.
+    if:
+      - reach:
+          from: unit
+          path:
+            - edge: mounts
+              direction: out
+          read: available
+        collapse: some
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.degraded
+        value: true
+    priority: 100
+
+  - id: R003
+    description: >-
+      Two or more unavailable mounts is not a degraded unit, it is a storage
+      problem. `every` cannot say this and `some` cannot either -- one is too
+      strong and the other too weak, which is exactly the gap the first author
+      to use traversal against a real graph reported: "topology often cares
+      about 'attached to at least two networks'".
+    if:
+      - reach:
+          from: unit
+          path:
+            - edge: mounts
+              direction: out
+          read: available
+        collapse:
+          at_least: 2
+        operator: EQ
+        operand: false
+    infer:
+      - subject: unit.storage_fault
+        value: true
+    priority: 100

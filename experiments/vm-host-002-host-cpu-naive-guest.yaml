@@ -1,0 +1,127 @@
+experiment:
+  id: vm-host-002-host-cpu-naive-guest
+  description: >-
+    The naive symptom is guest CPU wait on two VMs, but both VMs run on the
+    same CPU-saturated host. The intended question is whether the model follows
+    the functional runs_on relation and prefers the host layer.
+  pack: model-packs/vm-host-fault-domain
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: host-b
+        type: host
+      - id: vm-api
+        type: vm
+      - id: vm-billing
+        type: vm
+      - id: incident-1
+        type: incident
+
+    relationships:
+      - { id: R-host-b-vm-api, type: runs_on, from: vm-api, to: host-b }
+      - { id: R-host-b-vm-billing, type: runs_on, from: vm-billing, to: host-b }
+      - { id: R-incident-api, type: incident_scope, from: incident-1, to: vm-api }
+      - { id: R-incident-billing, type: incident_scope, from: incident-1, to: vm-billing }
+
+    sources:
+      - id: hypervisor
+        reliability: 900
+        independence_group: vcenter
+      - id: api-agent
+        reliability: 850
+        independence_group: api-guest
+      - id: billing-agent
+        reliability: 850
+        independence_group: billing-guest
+
+    evidence:
+      - id: E001
+        subject: host-b
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "96"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E002
+        subject: host-b
+        predicate: datastore_latency_ms
+        value: {fixed: "7"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: host-b
+        predicate: nic_loss_ppm
+        value: 12
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E004
+        subject: vm-api
+        predicate: app_errors_per_min
+        value: 36
+        source: api-agent
+        reliability: 850
+        observed_at: 999
+      - id: E005
+        subject: vm-api
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "92"}
+        source: api-agent
+        reliability: 850
+        observed_at: 999
+      - id: E006
+        subject: vm-api
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: api-agent
+        reliability: 850
+        observed_at: 999
+      - id: E007
+        subject: vm-billing
+        predicate: app_errors_per_min
+        value: 31
+        source: billing-agent
+        reliability: 850
+        observed_at: 999
+      - id: E008
+        subject: vm-billing
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "85"}
+        source: billing-agent
+        reliability: 850
+        observed_at: 999
+      - id: E009
+        subject: vm-billing
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "18"}
+        source: billing-agent
+        reliability: 850
+        observed_at: 999
+
+  expect:
+    properties:
+      - subject: incident-1.root_cause
+        value: HOST_CPU_CONTENTION
+        status: INFERRED
+      - subject: incident-1.host_cpu_path
+        value: true
+        status: INFERRED
+      - subject: incident-1.datastore_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.network_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.multi_vm_symptoms
+        value: true
+        status: INFERRED
+      - subject: incident-1.single_vm_pattern
+        value: false
+        status: INFERRED

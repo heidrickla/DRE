@@ -1,0 +1,40 @@
+features:
+  - id: F001
+    subject: channel.token_age_margin
+    description: Remaining secure channel token lifetime in logical ticks.
+    expression:
+      subtract:
+        - subject: channel.revised_lifetime
+        - subject: channel.token_age
+
+  - id: F002
+    subject: session.auth_gap
+    description: Margin above the session assurance threshold.
+    expression:
+      subtract:
+        - subject: session.auth_evidence_score
+        - literal: 700
+
+  - id: F003
+    subject: server.crypto_score
+    description: Margin between observed endpoint policy strength and the required strength.
+    expression:
+      subtract:
+        - subject: endpoint.policy_strength
+        - subject: endpoint.min_policy_required
+
+  - id: F004
+    subject: server.exposure_score
+    description: Composite externally reachable and anonymous OPC UA surface.
+    expression:
+      add:
+        - subject: server.internet_exposure_score
+        - subject: server.anonymous_surface_score
+
+  - id: F005
+    subject: cert.effective_trust_reliability
+    description: The weaker of trust-anchor and revocation-source confidence.
+    expression:
+      min:
+        - subject: cert.trust_anchor_score
+        - subject: cert.revocation_source_score

@@ -1,0 +1,95 @@
+experiment:
+  id: vm-host-001-datastore
+  description: >-
+    A straightforward single-VM case: the VM is degraded and the only bad
+    underlying host property is datastore latency.
+  pack: model-packs/vm-host-fault-domain
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: host-a
+        type: host
+      - id: vm-orders
+        type: vm
+      - id: incident-1
+        type: incident
+
+    relationships:
+      - { id: R-host-a-vm-orders, type: runs_on, from: vm-orders, to: host-a }
+      - { id: R-incident-orders, type: incident_scope, from: incident-1, to: vm-orders }
+
+    sources:
+      - id: hypervisor
+        reliability: 900
+        independence_group: vcenter
+      - id: guest-agent
+        reliability: 850
+        independence_group: guest-tools
+
+    evidence:
+      - id: E001
+        subject: host-a
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "18"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E002
+        subject: host-a
+        predicate: datastore_latency_ms
+        value: {fixed: "42"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: host-a
+        predicate: nic_loss_ppm
+        value: 8
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E004
+        subject: vm-orders
+        predicate: app_errors_per_min
+        value: 48
+        source: guest-agent
+        reliability: 850
+        observed_at: 999
+      - id: E005
+        subject: vm-orders
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "27"}
+        source: guest-agent
+        reliability: 850
+        observed_at: 999
+      - id: E006
+        subject: vm-orders
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: guest-agent
+        reliability: 850
+        observed_at: 999
+
+  expect:
+    properties:
+      - subject: incident-1.root_cause
+        value: DATASTORE_BACKEND
+        status: INFERRED
+      - subject: incident-1.datastore_path
+        value: true
+        status: INFERRED
+      - subject: incident-1.host_cpu_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.network_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.single_vm_pattern
+        value: true
+        status: INFERRED

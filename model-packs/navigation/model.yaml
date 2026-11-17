@@ -1,0 +1,18 @@
+# Model Pack C (plan section 19): grid navigation.
+#
+# A 5x5 grid, start (0,0), goal (4,4), with a wall at x=2 spanning y=0..2.
+#
+# The wall is placed to force a detour while keeping the optimal length at
+# 8 steps -- so there remain *many* distinct 8-step routes. That is
+# deliberate. Equal-cost alternatives are the normal case in grid
+# navigation, and they are exactly what an under-specified frontier
+# ordering resolves by heap layout. If the planner is nondeterministic,
+# this pack finds out.
+
+model:
+  id: grid-navigation
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Deterministic shortest-path selection on an obstructed grid. Exercises
+    causal actions, hard constraints, goals, and bounded search.

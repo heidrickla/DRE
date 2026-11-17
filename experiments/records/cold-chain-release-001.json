@@ -1,0 +1,10 @@
+{
+  "experiment": "cold-chain-release-001",
+  "input": "841b8cb15ad874428b626ae237e1b63bb4afaea90f91bcc48698a0c3fa147cc7",
+  "model": "8d73b1e667d06f274c26c42d6a7df4c9be0f75ceaa6373eddedbe718108aef65",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "9205cff2db2d2a0cdad32e5e9a4ab0ade4484cccbffb18c72d9851aa7d6a9569",
+  "proof": "2c705d46fcef1fbd31650bb6a270578d02cde3b97a4e87b4956fdef4c9000f94",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

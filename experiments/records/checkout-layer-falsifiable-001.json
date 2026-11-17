@@ -1,0 +1,10 @@
+{
+  "experiment": "checkout-layer-falsifiable-001",
+  "input": "b9ffedddb31bb525d25018f13365d4f716054b2c7ce761b5eda125704c89338b",
+  "model": "fb8ffc6d1f9c812d9c318907b3cafab6a2aab1cf74eb30566f9d61ae133f0bdc",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "eab4a8b0309df6ad62d0cb0507a6b1f1eb2563f50616b7489e72b5cfad25268a",
+  "proof": "9709a38e1c85cca8bc195ab0ad0230c42db2afa8bf472a15eb70fa7f73059c3d",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

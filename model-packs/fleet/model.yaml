@@ -1,0 +1,12 @@
+model:
+  id: fleet
+  version: 0.1.0
+  # The first pack in this repository that genuinely requires something.
+  # Every other one declares 0.1.0 and is satisfied by every engine that
+  # has ever existed, which is why the field was decorative. This pack
+  # cannot run on 0.8.0: its only rule names a type, and before 0.9.0 that
+  # matched no entity and the rule could never fire.
+  requires_engine: 0.9.0
+  description: >-
+    One rule, three switches. Exists because a rule that names an entity
+    type had no way to be exercised until it could bind per instance.

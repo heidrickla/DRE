@@ -1,0 +1,146 @@
+observations:
+  - id: checkout_error_rate_high
+    description: Customer checkout requests are failing above the incident threshold.
+    when:
+      subject: incident.checkout_error_rate_high
+      operator: EQ
+      operand: true
+
+  - id: api_p95_high
+    description: API p95 latency is much higher than its baseline.
+    when:
+      subject: incident.api_p95_high
+      operator: EQ
+      operand: true
+
+  - id: db_p95_high
+    description: Database p95 latency is much higher than its baseline.
+    when:
+      subject: incident.db_p95_high
+      operator: EQ
+      operand: true
+
+  - id: app_pool_wait_high
+    description: App workers are spending time waiting for database connections.
+    when:
+      subject: incident.app_pool_wait_high
+      operator: EQ
+      operand: true
+
+  - id: lb_retry_skew_to_app2
+    description: Load balancer retries are disproportionately associated with app-2.
+    when:
+      subject: incident.lb_retry_skew_to_app2
+      operator: EQ
+      operand: true
+
+  - id: single_node_health_flapping
+    description: One app node is flapping health checks.
+    when:
+      subject: incident.single_node_health_flapping
+      operator: EQ
+      operand: true
+
+  - id: datastore_write_latency_high
+    description: Shared datastore write latency is above normal.
+    when:
+      subject: incident.datastore_write_latency_high
+      operator: EQ
+      operand: true
+
+  - id: datastore_write_latency_normal
+    description: Shared datastore write latency is normal.
+    needs_explaining: false
+    when:
+      subject: incident.datastore_write_latency_high
+      operator: EQ
+      operand: false
+
+  - id: db_lock_wait_high
+    description: Database lock waits are high.
+    when:
+      subject: incident.db_lock_wait_high
+      operator: EQ
+      operand: true
+
+  - id: db_lock_wait_normal
+    description: Database lock waits are normal.
+    needs_explaining: false
+    when:
+      subject: incident.db_lock_wait_high
+      operator: EQ
+      operand: false
+
+  - id: hypervisor_cpu_ready_high
+    description: Hypervisor CPU ready time is high.
+    when:
+      subject: incident.hypervisor_cpu_ready_high
+      operator: EQ
+      operand: true
+
+  - id: hypervisor_cpu_ready_normal
+    description: Hypervisor CPU ready time is normal.
+    needs_explaining: false
+    when:
+      subject: incident.hypervisor_cpu_ready_high
+      operator: EQ
+      operand: false
+
+hypotheses:
+  - id: APP_NODE_GC_OR_LOCAL_STALL
+    description: app-2 is locally stalling, causing health flaps and skewed retries while downstream symptoms are secondary.
+    mechanisms:
+      - id: local_app_node_stall
+        explains:
+          - checkout_error_rate_high
+          - api_p95_high
+          - lb_retry_skew_to_app2
+          - single_node_health_flapping
+      - id: local_pool_starvation
+        explains:
+          - app_pool_wait_high
+
+  - id: DATABASE_LOCK_CONTENTION
+    description: the database is spending time blocked on row or table locks, backing up the API tier.
+    mechanisms:
+      - id: database_wait_chain
+        explains:
+          - checkout_error_rate_high
+          - api_p95_high
+          - db_p95_high
+          - app_pool_wait_high
+          - db_lock_wait_high
+      - id: retry_distribution_artifact
+        explains:
+          - lb_retry_skew_to_app2
+
+  - id: LOAD_BALANCER_HEALTHCHECK_DRIFT
+    description: the load balancer health check or retry policy is wrong, making one node look bad while the platform is otherwise healthy.
+    mechanisms:
+      - id: bad_healthcheck_policy
+        explains:
+          - checkout_error_rate_high
+          - lb_retry_skew_to_app2
+          - single_node_health_flapping
+      - id: backend_should_be_healthy
+        explains:
+          - db_lock_wait_normal
+          - datastore_write_latency_normal
+          - hypervisor_cpu_ready_normal
+
+  - id: SHARED_STORAGE_STALL
+    description: the VM datastore is intermittently stalling writes, surfacing as database latency and app backpressure.
+    mechanisms:
+      - id: database_io_wait
+        explains:
+          - db_p95_high
+          - datastore_write_latency_high
+      - id: application_backpressure
+        explains:
+          - checkout_error_rate_high
+          - api_p95_high
+      - id: connection_pool_backpressure
+        explains:
+          - app_pool_wait_high
+
+rank_into: incident.root_cause

@@ -1,0 +1,10 @@
+{
+  "experiment": "digital-evidence-002",
+  "input": "120e2c8c672a73b9d15da928487ddd3b4255af14df5ffc44fe0fc834fba402b2",
+  "model": "2efd28901b31b5b861afc47998266e921fd143f07b82e3fac20378c93931c4e9",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "54491f88daa04e32858b2848d20ffdc0337c8e81a522092475c8559c900d6848",
+  "proof": "cd42760382b93d9d205023afb45e93b1a88c753e72e8b8a09e28158a4c6a95d3",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

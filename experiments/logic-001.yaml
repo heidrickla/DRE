@@ -1,0 +1,53 @@
+# Experiment 1 (plan section 25): symbolic logic.
+#
+#   A -> B
+#   B -> C
+#   A = TRUE
+#
+#   Determine C.
+#
+# `b` and `c` are declared UNKNOWN rather than left out. Absence and
+# "observable but not yet observed" are different claims, and the engine
+# is built to keep them apart.
+
+experiment:
+  id: logic-001
+  description: >-
+    Transitive propositional chaining. C must come out TRUE and INFERRED --
+    derived, not observed.
+  pack: model-packs/logic
+
+  given:
+    entities:
+      - id: a
+        type: proposition
+        properties:
+          - name: holds
+            value: true
+            status: KNOWN
+
+      - id: b
+        type: proposition
+        properties:
+          - name: holds
+            status: UNKNOWN
+
+      - id: c
+        type: proposition
+        properties:
+          - name: holds
+            status: UNKNOWN
+
+  expect:
+    properties:
+      - subject: c.holds
+        value: true
+        status: INFERRED
+      - subject: b.holds
+        value: true
+        status: INFERRED
+      - subject: a.holds
+        value: true
+        status: KNOWN
+    rules_fired: 2
+    states_expanded: 0

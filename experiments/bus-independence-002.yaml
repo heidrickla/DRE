@@ -1,0 +1,108 @@
+# The identical situation with the bus NOT declared.
+#
+# Nobody told the engine that sensor-a, -b and -c share an acquisition bus.
+# A source with no declared group counts as its own, so independence is the
+# default and a shared cause has to be stated.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# LOW is now backed by THREE independence groups, NORMAL by two. LOW wins:
+#
+#   supply_state = LOW
+#   shed_load    = true
+#
+# The engine should confidently conclude the opposite of -001, from exactly
+# the same five readings, because one line of topology is missing.
+#
+# WRONG. The actual result was CONFLICTING.
+#
+# Both values clear corroboration_required: LOW with three groups, NORMAL
+# with two. Neither can win, so the engine declines instead of concluding.
+# That looked like failing safe, and `bus-independence-003` shows it is
+# not -- remove one independent sensor so NORMAL falls below the bar and
+# the engine confidently sheds load on the word of three sensors behind a
+# single undeclared failure.
+#
+# The prediction is kept as written because being wrong here is the
+# finding: undeclared correlation is not caught, it is merely survivable
+# when the correct answer happens to be independently corroborated.
+
+experiment:
+  id: bus-independence-002
+  description: >-
+    The identical five readings with the shared bus left undeclared.
+    Tests what the independence guard does when nobody has told it the
+    topology, which is the ordinary case for a device.
+  pack: model-packs/bus-independence
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      # These three do share an acquisition bus. Nothing here says so,
+      # which is the entire experiment.
+      - id: sensor-a
+        reliability: 900
+      - id: sensor-b
+        reliability: 900
+      - id: sensor-c
+        reliability: 900
+
+      # Separately wired, separately powered.
+      - id: sensor-d
+        reliability: 900
+      - id: sensor-e
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-a
+        reliability: 900
+        observed_at: 990
+      - id: E002
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-b
+        reliability: 900
+        observed_at: 990
+      - id: E003
+        subject: panel-1
+        predicate: supply_state
+        value: LOW
+        source: sensor-c
+        reliability: 900
+        observed_at: 990
+      - id: E004
+        subject: panel-1
+        predicate: supply_state
+        value: NORMAL
+        source: sensor-d
+        reliability: 900
+        observed_at: 990
+      - id: E005
+        subject: panel-1
+        predicate: supply_state
+        value: NORMAL
+        source: sensor-e
+        reliability: 900
+        observed_at: 990
+
+    entities:
+      - id: panel-1
+        type: panel
+        properties:
+          - name: supply_state
+          - name: shed_load
+
+  expect:
+    properties:
+      - subject: panel-1.supply_state
+        status: CONFLICTING

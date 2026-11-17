@@ -1,0 +1,267 @@
+rules:
+  - id: R001
+    description: Component Based Servicing pending state requires a reboot.
+    if:
+      - subject: host.cbs_reboot_pending
+        operator: EQ
+        operand: true
+    infer:
+      - subject: host.reboot_required
+        value: true
+    priority: 10
+
+  - id: R002
+    description: Windows Update pending state requires a reboot.
+    if:
+      - subject: host.wu_reboot_pending
+        operator: EQ
+        operand: true
+    infer:
+      - subject: host.reboot_required
+        value: true
+    priority: 10
+
+  - id: R003
+    description: Several independent reboot flags are enough even if individual flags are not known.
+    if:
+      - subject: host.pending_reboot_flags_count
+        operator: GTE
+        operand: 2
+    infer:
+      - subject: host.reboot_required
+        value: true
+    priority: 20
+
+  - id: R004
+    description: Current security update and recent patch age make the host current.
+    if:
+      - subject: host.latest_security_update_installed
+        operator: EQ
+        operand: true
+      - subject: host.days_since_patch
+        operator: LTE
+        operand: 30
+    infer:
+      - subject: host.patch_compliance_state
+        value: current
+    priority: 30
+
+  - id: R005
+    description: Missing latest update and age over forty-five days make patching overdue.
+    if:
+      - subject: host.latest_security_update_installed
+        operator: EQ
+        operand: false
+      - subject: host.days_since_patch
+        operator: GTE
+        operand: 45
+    infer:
+      - subject: host.patch_compliance_state
+        value: overdue
+    priority: 30
+
+  - id: R006
+    description: Group Policy data older than two days is stale.
+    if:
+      - subject: host.gpo_age_hours
+        operator: GTE
+        operand: 48
+    infer:
+      - subject: host.gpo_state
+        value: stale
+    priority: 35
+
+  - id: R007
+    description: Recent Group Policy data is fresh.
+    if:
+      - subject: host.gpo_age_hours
+        operator: LT
+        operand: 48
+    infer:
+      - subject: host.gpo_state
+        value: fresh
+    priority: 35
+
+  - id: R008
+    description: Replication failures degrade directory health.
+    if:
+      - subject: host.ad_replication_failures
+        operator: GT
+        operand: 0
+    infer:
+      - subject: host.directory_health
+        value: degraded
+    priority: 40
+
+  - id: R009
+    description: No replication failures mean directory health is healthy.
+    if:
+      - subject: host.ad_replication_failures
+        operator: EQ
+        operand: 0
+    infer:
+      - subject: host.directory_health
+        value: healthy
+    priority: 40
+
+  - id: R010
+    description: Critical service failures degrade service health.
+    if:
+      - subject: host.critical_service_failures
+        operator: GT
+        operand: 0
+    infer:
+      - subject: host.service_health
+        value: degraded
+    priority: 40
+
+  - id: R011
+    description: No critical service failures mean service dependencies are healthy.
+    if:
+      - subject: host.critical_service_failures
+        operator: EQ
+        operand: 0
+    infer:
+      - subject: host.service_health
+        value: healthy
+    priority: 40
+
+  - id: R012
+    description: Reboot pressure above two hundred is high urgency.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.admin_risk_score
+        operator: GTE
+        operand: {fixed: "200.0"}
+    infer:
+      - subject: host.reboot_urgency
+        value: high
+    priority: 50
+
+  - id: R013
+    description: Reboot pressure above four hundred is critical urgency.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.admin_risk_score
+        operator: GTE
+        operand: {fixed: "400.0"}
+    infer:
+      - subject: host.reboot_urgency
+        value: critical
+    priority: 50
+
+  - id: R014
+    description: Reboot required with overdue patching calls for a reboot-required action state.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.patch_compliance_state
+        operator: EQ
+        operand: overdue
+    infer:
+      - subject: host.admin_action_state
+        value: reboot-required
+    priority: 60
+
+  - id: R015
+    description: Overdue patching without a known reboot requirement still calls for patching.
+    if:
+      - subject: host.patch_compliance_state
+        operator: EQ
+        operand: overdue
+      - not:
+          subject: host.reboot_required
+          operator: EQ
+          operand: true
+    infer:
+      - subject: host.admin_action_state
+        value: patch-required
+    priority: 60
+
+  - id: R016
+    description: Service health degradation should be investigated before rebooting.
+    if:
+      - subject: host.service_health
+        operator: EQ
+        operand: degraded
+    infer:
+      - subject: host.admin_action_state
+        value: investigate-first
+    priority: 60
+
+  - id: R017
+    description: A healthy host in the maintenance window can be reboot-ready.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.maintenance_window_open
+        operator: EQ
+        operand: true
+      - subject: host.business_hours
+        operator: EQ
+        operand: false
+      - subject: host.service_health
+        operator: EQ
+        operand: healthy
+      - any:
+          - subject: host.is_domain_controller
+            operator: EQ
+            operand: false
+          - subject: host.peer_dc_available
+            operator: EQ
+            operand: true
+    infer:
+      - subject: host.reboot_readiness
+        value: ready
+    priority: 70
+
+  - id: R018
+    description: A required reboot during business hours is blocked by the window.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.business_hours
+        operator: EQ
+        operand: true
+    infer:
+      - subject: host.reboot_readiness
+        value: blocked-by-window
+    priority: 70
+
+  - id: R019
+    description: A domain controller with no peer should not be rebooted automatically.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.is_domain_controller
+        operator: EQ
+        operand: true
+      - subject: host.peer_dc_available
+        operator: EQ
+        operand: false
+    infer:
+      - subject: host.reboot_readiness
+        value: blocked-by-domain-role
+    priority: 70
+
+  - id: R020
+    description: Critical service failures block reboot readiness.
+    if:
+      - subject: host.reboot_required
+        operator: EQ
+        operand: true
+      - subject: host.service_health
+        operator: EQ
+        operand: degraded
+    infer:
+      - subject: host.reboot_readiness
+        value: blocked-by-service
+    priority: 70

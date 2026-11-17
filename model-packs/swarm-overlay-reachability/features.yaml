@@ -1,0 +1,8 @@
+features:
+  - id: F001
+    subject: service.replica_gap
+    description: Desired replicas minus running replicas from the frozen service state.
+    expression:
+      subtract:
+        - subject: service.desired_replicas
+        - subject: service.running_replicas

@@ -1,0 +1,53 @@
+# Unchanged from `device-cascade`, deliberately. The domain is the same
+# device; only where the diagnosis comes from has moved.
+
+entities:
+  device:
+    properties:
+      # Measured.
+      rail_voltage:
+        type: integer
+        min: 0
+        max: 300
+      temperature:
+        type: integer
+        min: 0
+        max: 200
+
+      # Symptoms.
+      temp_sensor_error:
+        type: boolean
+      pressure_sensor_error:
+        type: boolean
+      flow_sensor_error:
+        type: boolean
+      comms_error:
+        type: boolean
+
+      # Unrelated to the rail, and present so the pack is not four symptoms
+      # that all mean the same thing. It is also the observation nobody is
+      # charged for leaving unexplained, because it is not happening.
+      door_open:
+        type: boolean
+
+      # Never observed by anything.
+      coolant_level:
+        type: integer
+        min: 0
+        max: 100
+
+      # Concluded by rules.
+      power_fault:
+        type: boolean
+      sensors_degraded:
+        type: boolean
+      overheating:
+        type: boolean
+
+      # Concluded by the explanation layer, and by nothing else. The
+      # vocabulary and the declared hypothesis identifiers are the same two
+      # symbols, which is what makes the ranking's output a legal value for
+      # this property.
+      root_cause:
+        type: symbol
+        values: [POWER, THERMAL]

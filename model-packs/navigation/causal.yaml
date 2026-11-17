@@ -1,0 +1,53 @@
+# Each move costs 1. Preconditions keep the agent on the grid; the
+# obstacle wall is a constraint rather than a precondition, so a blocked
+# move is recorded as a rejected candidate in the proof instead of being
+# silently unavailable.
+
+actions:
+  - id: MOVE_EAST
+    description: Increase x by one.
+    preconditions:
+      - subject: agent.x
+        operator: LTE
+        operand: 3
+    effects:
+      agent.x:
+        add: 1
+    cost: 1
+    reversible: true
+
+  - id: MOVE_NORTH
+    description: Increase y by one.
+    preconditions:
+      - subject: agent.y
+        operator: LTE
+        operand: 3
+    effects:
+      agent.y:
+        add: 1
+    cost: 1
+    reversible: true
+
+  - id: MOVE_SOUTH
+    description: Decrease y by one.
+    preconditions:
+      - subject: agent.y
+        operator: GTE
+        operand: 1
+    effects:
+      agent.y:
+        add: -1
+    cost: 1
+    reversible: true
+
+  - id: MOVE_WEST
+    description: Decrease x by one.
+    preconditions:
+      - subject: agent.x
+        operator: GTE
+        operand: 1
+    effects:
+      agent.x:
+        add: -1
+    cost: 1
+    reversible: true

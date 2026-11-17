@@ -1,0 +1,10 @@
+{
+  "experiment": "opcua-002-conflicted-chain",
+  "input": "51de2607e1e0aa86132d71fac172efd63cbbce9032d61b0fd04ab445508515fc",
+  "model": "d9819a875f31d6d2161ca5d891c2ee3fe0894beca1ba725efe8b66325288d265",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "fbec97289f5f9d6b50fe3815d593d3e9ab484495a40ff7c4f41ac85b69486e0f",
+  "proof": "1e6442f91fd74fa4dc0047aedc0743a126e53228c2caed34ac42d14ac4e3bf33",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

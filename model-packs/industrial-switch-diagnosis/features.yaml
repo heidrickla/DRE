@@ -1,0 +1,17 @@
+features:
+  - id: F001_voltage_margin
+    subject: switch-1.voltage_margin
+    description: Margin above the switch's 44 VDC minimum operating point.
+    expression:
+      subtract:
+        - subject: switch-1.input_voltage
+        - literal: "44.0"
+
+  - id: F002_crc_peak
+    subject: switch-1.crc_peak
+    description: Worst CRC error rate among three independently observed port groups.
+    expression:
+      max:
+        - subject: switch-1.port_a_crc_rate
+        - subject: switch-1.port_b_crc_rate
+        - subject: switch-1.port_c_crc_rate

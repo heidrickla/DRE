@@ -1,0 +1,8 @@
+model:
+  id: network-forwarding-policy
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    A small network engineering model for deciding whether a traffic flow is
+    reachable through an OSPF-like route choice, an ACL decision, and basic
+    layer-2 forwarding health.

@@ -1,0 +1,203 @@
+# Prediction recorded before execution.
+#
+# This is the non-obvious case. It combines fixed-point features, conflicting
+# evidence, rules that should decline when certificate revocation is
+# CONFLICTING, a token-expiry denial, weak username identity, moderate write
+# classification, geometry classification, and competing explanations.
+#
+# Expected asserted properties:
+# - server.crypto_score = -64, INFERRED
+# - server.exposure_score = 120, INFERRED
+# - endpoint.mode_policy_ok = false, INFERRED
+# - cert.revoked = CONFLICTING with no value, because two independent groups
+#   each meet corroboration_required=1 for different boolean values
+# - cert.trust_ok should remain unreadable/absent, not false, because the
+#   engine should not let R004 or R005 read a CONFLICTING revocation value
+# - channel.token_age_margin = -10, INFERRED
+# - channel.renew_required = true, INFERRED
+# - channel.channel_secure = false, INFERRED
+# - session.user_authorized = true, INFERRED
+# - session.session_assurance = weak, INFERRED
+# - operation.request_risk = moderate, INFERRED
+# - operation.write_requires_approval = false, INFERRED
+# - operation.access_decision = CONFLICTING, because R015 says deny and R019
+#   says manual_review. The domain answer I would prefer is deny, but the
+#   brief says priority does not resolve conflicting inferred values.
+# - operation.permit_write = false, INFERRED
+# - operation.audit_required = true, INFERRED
+# - server.posture_region = legacy_exposed, INFERRED
+# - operation.preferred_explanation = LEGACY_ENDPOINT, INFERRED
+#
+# Expected rules to fire: R001, R008, R012, R014, R015, and R019. I expect
+# R005 not to fire even though one source says revoked=true, because evidence
+# resolution should make cert.revoked CONFLICTING rather than KNOWN true.
+#
+# Least certain: two rules will infer operation.access_decision differently:
+# R015 infers deny and R019 infers manual_review. The brief says two rules
+# concluding different values for one property give CONFLICTING. I predict
+# this case may therefore disagree with my desired domain answer. My specific
+# falsifiable prediction is that the engine will mark access_decision
+# CONFLICTING, not deny, even though I think OPC UA policy should let channel
+# failure dominate weak identity. If it instead preserves deny because R015
+# fires first, that will show an engine conflict/overwrite behavior I did not
+# understand from the brief.
+experiment:
+  id: opcua-002-conflicted-chain
+  description: Expired token, weak identity, weak crypto, and conflicting revocation evidence.
+  pack: model-packs/opc-ua-access
+
+  given:
+    now: 2000
+    entities:
+      - id: endpoint
+        type: endpoint
+        properties:
+          - name: security_mode
+            value: sign_and_encrypt
+            status: KNOWN
+          - name: security_policy
+            value: basic128rsa15
+            status: KNOWN
+          - name: policy_strength
+            value: 128
+            status: KNOWN
+          - name: min_policy_required
+            value: 192
+            status: KNOWN
+          - name: deprecated_policy
+            value: false
+            status: KNOWN
+
+      - id: channel
+        type: channel
+        properties:
+          - name: revised_lifetime
+            value: {fixed: "3600"}
+            status: KNOWN
+          - name: token_age
+            value: {fixed: "3610"}
+            status: KNOWN
+          - name: secure_channel_open
+            value: true
+            status: KNOWN
+
+      - id: cert
+        type: cert
+        properties:
+          - name: trustlist_state
+            value: trusted
+            status: KNOWN
+          - name: hostname_match
+            value: true
+            status: KNOWN
+          - name: expiry_margin_days
+            value: {fixed: "14"}
+            status: KNOWN
+          - name: trust_anchor_score
+            value: 900
+            status: KNOWN
+          - name: revocation_source_score
+            value: 700
+            status: KNOWN
+
+      - id: session
+        type: session
+        properties:
+          - name: auth_method
+            value: username
+            status: KNOWN
+          - name: auth_evidence_score
+            value: 650
+            status: KNOWN
+          - name: session_active
+            value: true
+            status: KNOWN
+
+      - id: server
+        type: server
+        properties:
+          - name: internet_exposure_score
+            value: 80
+            status: KNOWN
+          - name: anonymous_surface_score
+            value: 40
+            status: KNOWN
+          - name: production_role
+            value: safety_control
+            status: KNOWN
+          - name: write_policy
+            value: allow
+            status: KNOWN
+          - name: allow_anonymous
+            value: false
+            status: KNOWN
+
+      - id: operation
+        type: operation
+        properties:
+          - name: service
+            value: write
+            status: KNOWN
+          - name: target_safety_class
+            value: process_critical
+            status: KNOWN
+          - name: requested_value_class
+            value: configuration
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    sources:
+      - id: ocsp-primary
+        reliability: 930
+        independence_group: pki-online
+      - id: crl-mirror
+        reliability: 880
+        independence_group: pki-offline
+
+    evidence:
+      - id: E001
+        subject: cert
+        predicate: revoked
+        value: false
+        source: ocsp-primary
+        reliability: 910
+        observed_at: 1995
+      - id: E002
+        subject: cert
+        predicate: revoked
+        value: true
+        source: crl-mirror
+        reliability: 860
+        observed_at: 1990
+
+  expect:
+    properties:
+      - subject: endpoint.mode_policy_ok
+        value: false
+        status: INFERRED
+      - subject: cert.revoked
+        status: CONFLICTING
+      - subject: channel.channel_secure
+        value: false
+        status: INFERRED
+      - subject: session.session_assurance
+        value: weak
+        status: INFERRED
+      - subject: operation.request_risk
+        value: moderate
+        status: INFERRED
+      - subject: operation.access_decision
+        status: CONFLICTING
+      - subject: operation.permit_write
+        value: false
+        status: INFERRED
+      - subject: server.posture_region
+        value: legacy_exposed
+        status: INFERRED
+      - subject: operation.preferred_explanation
+        value: LEGACY_ENDPOINT
+        status: INFERRED

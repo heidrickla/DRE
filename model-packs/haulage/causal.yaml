@@ -1,0 +1,97 @@
+# Three routes from the depot to the yard, and the costs are the whole
+# design.
+#
+#   north bridge   1 + 1 = 2    the shortest, and the one that gets blocked
+#   ford           1 + 1 = 2    plus a penalty of 5 for using it, so 7
+#   over the hills 3 + 3 + 3 = 9
+#
+# 7 is less than 9, so a planner that charges the penalty still fords the
+# river -- which is what "avoid unless you must" means and what no shipped
+# pack had ever made it do. The margin is deliberately narrow: raise the
+# penalty past 7 and the hills win instead, which is the trade-off being
+# a trade-off rather than a decoration.
+
+actions:
+  - id: DRIVE_DEPOT_TO_FORD
+    description: Depot to the ford.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: DEPOT
+    effects:
+      truck.at:
+        set: FORD
+    cost: 1
+    reversible: true
+
+  - id: DRIVE_DEPOT_TO_HILL_A
+    description: Depot to the first hill, the long way round.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: DEPOT
+    effects:
+      truck.at:
+        set: HILL_A
+    cost: 3
+    reversible: true
+
+  - id: DRIVE_DEPOT_TO_NORTH_BRIDGE
+    description: Depot to the north bridge.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: DEPOT
+    effects:
+      truck.at:
+        set: NORTH_BRIDGE
+    cost: 1
+    reversible: true
+
+  - id: DRIVE_FORD_TO_YARD
+    description: The ford to the yard.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: FORD
+    effects:
+      truck.at:
+        set: YARD
+    cost: 1
+    reversible: true
+
+  - id: DRIVE_HILL_A_TO_HILL_B
+    description: Between the hills.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: HILL_A
+    effects:
+      truck.at:
+        set: HILL_B
+    cost: 3
+    reversible: true
+
+  - id: DRIVE_HILL_B_TO_YARD
+    description: The second hill down to the yard.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: HILL_B
+    effects:
+      truck.at:
+        set: YARD
+    cost: 3
+    reversible: true
+
+  - id: DRIVE_NORTH_BRIDGE_TO_YARD
+    description: The north bridge to the yard.
+    preconditions:
+      - subject: truck.at
+        operator: EQ
+        operand: NORTH_BRIDGE
+    effects:
+      truck.at:
+        set: YARD
+    cost: 1
+    reversible: true

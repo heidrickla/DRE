@@ -1,0 +1,27 @@
+[package]
+name = "dre-symbolic"
+description = "Phase 4: symbolic reasoning. Forward-chaining inference with deterministic rule ordering."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-evidence = { workspace = true }
+dre-model = { workspace = true }
+dre-proof = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# Round-trip only: the condition reader is hand-written, so it has to be
+# checked against the derived writer in a format that is not the one the
+# parser policy already covers.
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

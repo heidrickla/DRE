@@ -1,0 +1,23 @@
+[package]
+name = "dre-causal"
+description = "Phase 7: causal reasoner. Actions as deterministic state transformations."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-model = { workspace = true }
+dre-proof = { workspace = true }
+# Preconditions are ordinary conditions. Reusing the symbolic condition
+# type keeps one evaluator rather than two that can drift apart.
+dre-symbolic = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,8 @@
+features:
+  - id: F001
+    subject: vm.cpu_ready_excess_ms_per_s
+    description: Guest CPU ready time above that VM's baseline.
+    expression:
+      subtract:
+        - subject: vm.cpu_ready_ms_per_s
+        - subject: vm.cpu_ready_baseline_ms_per_s

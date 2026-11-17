@@ -1,0 +1,54 @@
+rules:
+  # FAULT 1: `temprature` is a typo. The condition evaluates to Unknown,
+  # so this rule silently never fires, and nothing at run time says so.
+  - id: R001
+    description: Typo in a condition subject.
+    if:
+      - subject: widget.temprature
+        operator: GT
+        operand: 50
+    infer:
+      - subject: widget.grade
+        value: grade-b
+    priority: 100
+
+  # FAULT 2: infers a property the ontology never declares. Works at run
+  # time -- the state builder creates it -- but the ontology is then a
+  # false description of what the pack produces.
+  - id: R002
+    description: Concludes an undeclared property.
+    if:
+      - subject: widget.temperature
+        operator: GT
+        operand: 50
+    infer:
+      - subject: widget.undeclared_conclusion
+        value: true
+    priority: 100
+
+  # FAULT 6: `degarded` is not in the declared vocabulary for `condition`.
+  # A typo in a value is as invisible at run time as a typo in a subject:
+  # nothing compares equal to it, so every rule reading it fails to fire.
+  - id: R003
+    description: Concludes a symbol outside the declared vocabulary.
+    if:
+      - subject: widget.temperature
+        operator: GT
+        operand: 90
+    infer:
+      - subject: widget.condition
+        value: degarded
+    priority: 100
+
+  # FAULT 8: `drift` holds fixed-point, so comparing it against an integer
+  # literal is undecidable and this rule can never fire.
+  - id: R004
+    description: Compares a fixed-point property against an integer literal.
+    if:
+      - subject: widget.drift
+        operator: GT
+        operand: 5
+    infer:
+      - subject: widget.grade
+        value: grade-c
+    priority: 100

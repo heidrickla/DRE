@@ -1,0 +1,439 @@
+rules:
+  - id: R001
+    description: Host CPU ready is high enough to mark the host saturated.
+    if:
+      - subject: host.cpu_ready_ms_per_s
+        operator: GTE
+        operand: {fixed: "80"}
+    infer:
+      - subject: host.cpu_saturated
+        value: true
+
+  - id: R002
+    description: Host CPU ready is low enough to refute host CPU saturation.
+    if:
+      - subject: host.cpu_ready_ms_per_s
+        operator: LTE
+        operand: {fixed: "30"}
+    infer:
+      - subject: host.cpu_saturated
+        value: false
+
+  - id: R003
+    description: Datastore latency is high enough to mark the host storage path slow.
+    if:
+      - subject: host.datastore_latency_ms
+        operator: GTE
+        operand: {fixed: "25"}
+    infer:
+      - subject: host.datastore_slow
+        value: true
+
+  - id: R004
+    description: Datastore latency is low enough to refute a slow storage path.
+    if:
+      - subject: host.datastore_latency_ms
+        operator: LTE
+        operand: {fixed: "10"}
+    infer:
+      - subject: host.datastore_slow
+        value: false
+
+  - id: R005
+    description: Physical NIC loss is high enough to mark the host network unhealthy.
+    if:
+      - subject: host.nic_loss_ppm
+        operator: GTE
+        operand: 250
+    infer:
+      - subject: host.nic_unhealthy
+        value: true
+
+  - id: R006
+    description: Physical NIC loss is low enough to refute host network loss.
+    if:
+      - subject: host.nic_loss_ppm
+        operator: LTE
+        operand: 50
+    infer:
+      - subject: host.nic_unhealthy
+        value: false
+
+  - id: R007
+    description: Application error rate is high enough to mark a VM degraded.
+    if:
+      - subject: vm.app_errors_per_min
+        operator: GTE
+        operand: 20
+    infer:
+      - subject: vm.app_degraded
+        value: true
+
+  - id: R008
+    description: Application error rate is low enough to refute VM degradation.
+    if:
+      - subject: vm.app_errors_per_min
+        operator: LTE
+        operand: 5
+    infer:
+      - subject: vm.app_degraded
+        value: false
+
+  - id: R009
+    description: Excess guest ready time marks guest-visible CPU wait.
+    if:
+      - subject: vm.cpu_ready_excess_ms_per_s
+        operator: GTE
+        operand: {fixed: "50"}
+    infer:
+      - subject: vm.cpu_wait_abnormal
+        value: true
+
+  - id: R010
+    description: Low excess guest ready time refutes guest-visible CPU wait.
+    if:
+      - subject: vm.cpu_ready_excess_ms_per_s
+        operator: LTE
+        operand: {fixed: "10"}
+    infer:
+      - subject: vm.cpu_wait_abnormal
+        value: false
+
+  - id: R011
+    description: A VM inherits CPU exposure from the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: cpu_saturated
+        collapse: the
+        operator: EQ
+        operand: true
+    infer:
+      - subject: vm.host_cpu_exposure
+        value: true
+
+  - id: R012
+    description: A VM's host CPU exposure is refuted by the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: cpu_saturated
+        collapse: the
+        operator: EQ
+        operand: false
+    infer:
+      - subject: vm.host_cpu_exposure
+        value: false
+
+  - id: R013
+    description: A VM inherits datastore exposure from the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: datastore_slow
+        collapse: the
+        operator: EQ
+        operand: true
+    infer:
+      - subject: vm.datastore_exposure
+        value: true
+
+  - id: R014
+    description: A VM's datastore exposure is refuted by the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: datastore_slow
+        collapse: the
+        operator: EQ
+        operand: false
+    infer:
+      - subject: vm.datastore_exposure
+        value: false
+
+  - id: R015
+    description: A VM inherits network exposure from the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: nic_unhealthy
+        collapse: the
+        operator: EQ
+        operand: true
+    infer:
+      - subject: vm.network_exposure
+        value: true
+
+  - id: R016
+    description: A VM's network exposure is refuted by the single host it runs on.
+    if:
+      - reach:
+          from: vm
+          path:
+            - edge: runs_on
+              direction: out
+          read: nic_unhealthy
+        collapse: the
+        operator: EQ
+        operand: false
+    infer:
+      - subject: vm.network_exposure
+        value: false
+
+  - id: R017
+    description: At least one scoped VM is degraded.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: app_degraded
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.app_degradation_present
+        value: true
+
+  - id: R018
+    description: All scoped VMs are confirmed not degraded.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: app_degraded
+        collapse: every
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.app_degradation_present
+        value: false
+
+  - id: R019
+    description: Two or more scoped VMs are degraded.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: app_degraded
+        collapse: {at_least: 2}
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.multi_vm_symptoms
+        value: true
+
+  - id: R020
+    description: Fewer than two scoped VMs are degraded.
+    if:
+      - not:
+          reach:
+            from: incident
+            path:
+              - edge: incident_scope
+                direction: out
+            read: app_degraded
+          collapse: {at_least: 2}
+          operator: EQ
+          operand: true
+    infer:
+      - subject: incident.multi_vm_symptoms
+        value: false
+
+  - id: R021
+    description: A single-VM pattern is a degraded incident without multi-VM spread.
+    if:
+      - subject: incident.app_degradation_present
+        operator: EQ
+        operand: true
+      - subject: incident.multi_vm_symptoms
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.single_vm_pattern
+        value: true
+
+  - id: R022
+    description: Multi-VM spread refutes a single-VM pattern.
+    if:
+      - subject: incident.multi_vm_symptoms
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.single_vm_pattern
+        value: false
+
+  - id: R023
+    description: Some scoped VM has guest-visible CPU wait.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: cpu_wait_abnormal
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.guest_wait_symptoms
+        value: true
+
+  - id: R024
+    description: Every scoped VM refutes guest-visible CPU wait.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: cpu_wait_abnormal
+        collapse: every
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.guest_wait_symptoms
+        value: false
+
+  - id: R025
+    description: At least one scoped degraded VM is exposed to host CPU saturation.
+    # Both halves are now required of the SAME VM. Previously this conjoined
+    # `incident.app_degradation_present` -- itself "some scoped VM is
+    # degraded" -- with an independent "some scoped VM is exposed", which is
+    # not what the description says and is not what the diagnosis needs. See
+    # experiments/vm-host-004-unpaired-promotes-a-winner.yaml for that rule
+    # concluding a confident wrong answer.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: host_cpu_exposure
+          also:
+            - read: app_degraded
+              operator: EQ
+              operand: true
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.host_cpu_path
+        value: true
+
+  - id: R026
+    description: No scoped VM is both degraded and exposed to host CPU saturation.
+    # The exact negative of R025, and it has to be. Testing "every scoped VM
+    # is unexposed" leaves a gap the moment R025 is paired: a scoped VM may be
+    # exposed while no scoped VM is *both*, and then neither rule fires and
+    # host_cpu_path stays UNKNOWN -- which neither supports nor contradicts,
+    # so the account it belongs to survives on the observations that remain.
+    # That is the one-way boolean trap arriving through a paired condition.
+    if:
+      - not:
+          reach:
+            from: incident
+            path:
+              - edge: incident_scope
+                direction: out
+            read: host_cpu_exposure
+            also:
+              - read: app_degraded
+                operator: EQ
+                operand: true
+          collapse: some
+          operator: EQ
+          operand: true
+    infer:
+      - subject: incident.host_cpu_path
+        value: false
+
+  - id: R027
+    description: At least one scoped degraded VM is exposed to a slow datastore path.
+    if:
+      - subject: incident.app_degradation_present
+        operator: EQ
+        operand: true
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: datastore_exposure
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.datastore_path
+        value: true
+
+  - id: R028
+    description: No scoped VM is exposed to a slow datastore path.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: datastore_exposure
+        collapse: every
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.datastore_path
+        value: false
+
+  - id: R029
+    description: At least one scoped degraded VM is exposed to host NIC loss.
+    if:
+      - subject: incident.app_degradation_present
+        operator: EQ
+        operand: true
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: network_exposure
+        collapse: some
+        operator: EQ
+        operand: true
+    infer:
+      - subject: incident.network_path
+        value: true
+
+  - id: R030
+    description: No scoped VM is exposed to host NIC loss.
+    if:
+      - reach:
+          from: incident
+          path:
+            - edge: incident_scope
+              direction: out
+          read: network_exposure
+        collapse: every
+        operator: EQ
+        operand: false
+    infer:
+      - subject: incident.network_path
+        value: false

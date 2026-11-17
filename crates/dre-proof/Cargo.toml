@@ -1,0 +1,18 @@
+[package]
+name = "dre-proof"
+description = "Phase 10: proof engine. Records inputs, activations, candidates, rejections, scores, and tie-breaks."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# Depends on dre-core only. Every reasoner emits proof nodes, so if this
+# crate knew about the reasoners the dependency graph would be cyclic.
+[dependencies]
+dre-core = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,160 @@
+# The same conflict, with the domain's own answer declared.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# Identical evidence to opcua-002-conflicted-chain, identical rules. The only
+# difference is that `access_decision` declares
+# `precedence: [deny, manual_review, allow]`.
+#
+# R015 infers `deny` and R019 infers `manual_review`. Instead of merging to
+# CONFLICTING and discarding the value, the declared order settles it:
+#
+#   operation.access_decision = deny [Inferred]
+#
+# and the proof carries a TIE-BREAK naming what dominated what. Everything
+# else in the run should be unchanged from -002, including `cert.revoked`
+# staying CONFLICTING -- that one is two sources disagreeing about a fact,
+# which precedence deliberately does not touch.
+
+experiment:
+  id: opcua-003-precedence
+  description: Expired token, weak identity, weak crypto, and conflicting revocation evidence.
+  pack: model-packs/opc-ua-access-precedence
+
+  given:
+    now: 2000
+    entities:
+      - id: endpoint
+        type: endpoint
+        properties:
+          - name: security_mode
+            value: sign_and_encrypt
+            status: KNOWN
+          - name: security_policy
+            value: basic128rsa15
+            status: KNOWN
+          - name: policy_strength
+            value: 128
+            status: KNOWN
+          - name: min_policy_required
+            value: 192
+            status: KNOWN
+          - name: deprecated_policy
+            value: false
+            status: KNOWN
+
+      - id: channel
+        type: channel
+        properties:
+          - name: revised_lifetime
+            value: {fixed: "3600"}
+            status: KNOWN
+          - name: token_age
+            value: {fixed: "3610"}
+            status: KNOWN
+          - name: secure_channel_open
+            value: true
+            status: KNOWN
+
+      - id: cert
+        type: cert
+        properties:
+          - name: trustlist_state
+            value: trusted
+            status: KNOWN
+          - name: hostname_match
+            value: true
+            status: KNOWN
+          - name: expiry_margin_days
+            value: {fixed: "14"}
+            status: KNOWN
+          - name: trust_anchor_score
+            value: 900
+            status: KNOWN
+          - name: revocation_source_score
+            value: 700
+            status: KNOWN
+
+      - id: session
+        type: session
+        properties:
+          - name: auth_method
+            value: username
+            status: KNOWN
+          - name: auth_evidence_score
+            value: 650
+            status: KNOWN
+          - name: session_active
+            value: true
+            status: KNOWN
+
+      - id: server
+        type: server
+        properties:
+          - name: internet_exposure_score
+            value: 80
+            status: KNOWN
+          - name: anonymous_surface_score
+            value: 40
+            status: KNOWN
+          - name: production_role
+            value: safety_control
+            status: KNOWN
+          - name: write_policy
+            value: allow
+            status: KNOWN
+          - name: allow_anonymous
+            value: false
+            status: KNOWN
+
+      - id: operation
+        type: operation
+        properties:
+          - name: service
+            value: write
+            status: KNOWN
+          - name: target_safety_class
+            value: process_critical
+            status: KNOWN
+          - name: requested_value_class
+            value: configuration
+            status: KNOWN
+
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    sources:
+      - id: ocsp-primary
+        reliability: 930
+        independence_group: pki-online
+      - id: crl-mirror
+        reliability: 880
+        independence_group: pki-offline
+
+    evidence:
+      - id: E001
+        subject: cert
+        predicate: revoked
+        value: false
+        source: ocsp-primary
+        reliability: 910
+        observed_at: 1995
+      - id: E002
+        subject: cert
+        predicate: revoked
+        value: true
+        source: crl-mirror
+        reliability: 860
+        observed_at: 1990
+
+  expect:
+    properties:
+      - subject: operation.access_decision
+        value: deny
+        status: INFERRED
+      # Untouched: evidence disagreeing about a fact is not a policy
+      # question, and precedence is declared on inference only.
+      - subject: cert.revoked
+        status: CONFLICTING

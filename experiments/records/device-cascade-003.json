@@ -1,0 +1,10 @@
+{
+  "experiment": "device-cascade-003",
+  "input": "adf9f3398173d4da7902edc6d69aa69e3090a5eedd03d2e4eeaea98c0f28362f",
+  "model": "b1dc95217b2dfccfe66dc85c7573b446d01c89d655c46b90723cd5c9782541e1",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "5a847e55ba0d09028d75ca1587efaf65f84ce18268b83ff277274a8a90f26724",
+  "proof": "3c29fb30ebe5527f63bc1104c4fbf1e2ab5fddb7750d4cabf3c06a986817f6de",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

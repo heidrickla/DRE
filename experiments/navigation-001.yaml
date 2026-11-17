@@ -1,0 +1,66 @@
+# Experiment 3 (plan section 25): grid navigation.
+#
+#   start     = (0,0)
+#   goal      = (4,4)
+#   obstacles = (2,0) (2,1) (2,2)
+#
+# The optimal route is 8 steps, and there are many distinct 8-step routes.
+# That is the point: the experiment asserts *which* one comes back, so it
+# fails if the planner's frontier ordering is not total.
+
+experiment:
+  id: navigation-001
+  description: >-
+    Deterministic shortest-path selection with equal-cost alternatives.
+    Exercises causal actions, nested hard constraints, goals, and bounded
+    search.
+  pack: model-packs/navigation
+
+  given:
+    entities:
+      - id: agent
+        type: agent
+        properties:
+          - name: x
+            value: 0
+            status: KNOWN
+          - name: y
+            value: 0
+            status: KNOWN
+
+  expect:
+    properties:
+      - subject: agent.x
+        value: 0
+        status: KNOWN
+      - subject: agent.y
+        value: 0
+        status: KNOWN
+    rules_fired: 0
+
+    # Pinned deliberately. Several distinct 8-step routes are equally
+    # optimal, so asserting the *length* would pass under a
+    # nondeterministic planner. Asserting which one comes back is what
+    # makes this experiment a determinism test rather than a pathfinding
+    # test.
+    #
+    # The route crosses the wall at y=3 and steps around the hazard at
+    # (3,3). Note it is still 8 steps: an equal-length detour existed, so
+    # avoiding the hazard cost nothing and the soft penalty was never
+    # actually paid. That is the correct behaviour -- a soft constraint is
+    # a price, not a prohibition, and here the price was avoidable.
+    # Changed 2026-08-15 when the planner stopped settling states at
+    # generation time. The previous route was equally optimal -- same
+    # eight steps, same cost of 8 -- and which of the several optimal
+    # routes comes back is decided by the frontier ordering, which the fix
+    # legitimately altered. The old expectation was not wrong; it recorded
+    # a different arbitrary-but-fixed choice.
+    plan:
+      - MOVE_NORTH
+      - MOVE_NORTH
+      - MOVE_NORTH
+      - MOVE_NORTH
+      - MOVE_EAST
+      - MOVE_EAST
+      - MOVE_EAST
+      - MOVE_EAST

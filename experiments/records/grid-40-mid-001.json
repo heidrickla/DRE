@@ -1,0 +1,10 @@
+{
+  "experiment": "grid-40-mid-001",
+  "input": "75e6a72f89bcab7951cbb57f438e60726ba4ec3a1f39ef8a2c2f9b24d2dca0a4",
+  "model": "6f4825dd095e252fcc7072c87854f0ff746878163e46db025f1187d525db67f7",
+  "engine": "de6b7e2ffbe82a8715de28157396578bdd9dce23dce3d63f0b3ef6f71b3b148f",
+  "decision": "dbd7d1bef3524f28493405810cd02cefce00230590084d27df678e9238208e89",
+  "proof": "adeb2837fc3accbcafb43360b7fbcb5029ba50269323fe0a2bc46da394e1504e",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

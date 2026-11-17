@@ -1,0 +1,57 @@
+actions:
+  - id: ISOLATE_ARTIFACT
+    description: Place the artifact into the controlled review state.
+    preconditions:
+      - subject: artifact-1.isolated
+        operator: EQ
+        operand: false
+    effects:
+      artifact-1.isolated:
+        set: true
+    cost: 1
+    reversible: false
+
+  - id: ANALYST_REVIEW
+    description: Perform the analyst review after isolation.
+    preconditions:
+      - subject: artifact-1.isolated
+        operator: EQ
+        operand: true
+      - subject: artifact-1.analyst_reviewed
+        operator: EQ
+        operand: false
+    effects:
+      artifact-1.analyst_reviewed:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: SECONDARY_HASH_VERIFY
+    description: Obtain a secondary hash verification after analyst review.
+    preconditions:
+      - subject: artifact-1.analyst_reviewed
+        operator: EQ
+        operand: true
+      - subject: artifact-1.secondary_hash_verified
+        operator: EQ
+        operand: false
+    effects:
+      artifact-1.secondary_hash_verified:
+        set: true
+    cost: 2
+    reversible: false
+
+  - id: FINALIZE_CASE
+    description: Mark the case ready once review and secondary verification are complete.
+    preconditions:
+      - subject: artifact-1.analyst_reviewed
+        operator: EQ
+        operand: true
+      - subject: artifact-1.secondary_hash_verified
+        operator: EQ
+        operand: true
+    effects:
+      artifact-1.case_ready:
+        set: true
+    cost: 1
+    reversible: false

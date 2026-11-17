@@ -1,0 +1,17 @@
+# One panel, one contested predicate, one consequence.
+#
+# Deliberately minimal. The experiment is about resolution arithmetic, and
+# anything else in the pack would only obscure which part produced the
+# answer.
+
+entities:
+  panel:
+    properties:
+      supply_state:
+        type: symbol
+        values: [LOW, NORMAL]
+
+      # So the disagreement has a consequence rather than staying an
+      # internal detail of resolution.
+      shed_load:
+        type: boolean

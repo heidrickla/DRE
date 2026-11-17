@@ -1,0 +1,184 @@
+experiment:
+  id: vm-host-005-saturated-unrelated-host
+  description: >-
+    Two degraded VMs with high guest ready time run on a quiet host, while a
+    different scoped VM runs on a CPU-saturated host but is not degraded. The
+    saturated host is in scope, but it is not the fault domain for the symptom.
+  pack: model-packs/vm-host-fault-domain
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 1
+      freshness_window: 100
+
+    entities:
+      - id: host-quiet
+        type: host
+      - id: host-saturated
+        type: host
+      - id: vm-one
+        type: vm
+      - id: vm-two
+        type: vm
+      - id: vm-three
+        type: vm
+      - id: incident-1
+        type: incident
+
+    relationships:
+      - { id: R-host-quiet-vm-one, type: runs_on, from: vm-one, to: host-quiet }
+      - { id: R-host-quiet-vm-two, type: runs_on, from: vm-two, to: host-quiet }
+      - { id: R-host-saturated-vm-three, type: runs_on, from: vm-three, to: host-saturated }
+      - { id: R-incident-one, type: incident_scope, from: incident-1, to: vm-one }
+      - { id: R-incident-two, type: incident_scope, from: incident-1, to: vm-two }
+      - { id: R-incident-three, type: incident_scope, from: incident-1, to: vm-three }
+
+    sources:
+      - id: hypervisor
+        reliability: 900
+        independence_group: vcenter
+      - id: one-agent
+        reliability: 850
+        independence_group: one-guest
+      - id: two-agent
+        reliability: 850
+        independence_group: two-guest
+      - id: three-agent
+        reliability: 850
+        independence_group: three-guest
+
+    evidence:
+      - id: E001
+        subject: host-quiet
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "9"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E002
+        subject: host-quiet
+        predicate: datastore_latency_ms
+        value: {fixed: "6"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E003
+        subject: host-quiet
+        predicate: nic_loss_ppm
+        value: 11
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E004
+        subject: host-saturated
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "96"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E005
+        subject: host-saturated
+        predicate: datastore_latency_ms
+        value: {fixed: "7"}
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E006
+        subject: host-saturated
+        predicate: nic_loss_ppm
+        value: 12
+        source: hypervisor
+        reliability: 900
+        observed_at: 998
+      - id: E007
+        subject: vm-one
+        predicate: app_errors_per_min
+        value: 34
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+      - id: E008
+        subject: vm-one
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "92"}
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+      - id: E009
+        subject: vm-one
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: one-agent
+        reliability: 850
+        observed_at: 999
+      - id: E010
+        subject: vm-two
+        predicate: app_errors_per_min
+        value: 31
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+      - id: E011
+        subject: vm-two
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "85"}
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+      - id: E012
+        subject: vm-two
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "18"}
+        source: two-agent
+        reliability: 850
+        observed_at: 999
+      - id: E013
+        subject: vm-three
+        predicate: app_errors_per_min
+        value: 1
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+      - id: E014
+        subject: vm-three
+        predicate: cpu_ready_ms_per_s
+        value: {fixed: "22"}
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+      - id: E015
+        subject: vm-three
+        predicate: cpu_ready_baseline_ms_per_s
+        value: {fixed: "20"}
+        source: three-agent
+        reliability: 850
+        observed_at: 999
+
+  expect:
+    properties:
+      - subject: incident-1.root_cause
+        value: GUEST_OS_CPU_BUG
+        status: INFERRED
+      - subject: incident-1.app_degradation_present
+        value: true
+        status: INFERRED
+      - subject: incident-1.multi_vm_symptoms
+        value: true
+        status: INFERRED
+      - subject: incident-1.single_vm_pattern
+        value: false
+        status: INFERRED
+      - subject: incident-1.guest_wait_symptoms
+        value: true
+        status: INFERRED
+      - subject: incident-1.host_cpu_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.datastore_path
+        value: false
+        status: INFERRED
+      - subject: incident-1.network_path
+        value: false
+        status: INFERRED

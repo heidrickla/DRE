@@ -1,0 +1,10 @@
+{
+  "experiment": "vm-host-003-unpaired-aggregation",
+  "input": "c0bd90137328e1a1cc0a58039ae4d584e2807924e858ac099e530a705ae5f793",
+  "model": "eb4d70344c159452f7da3faa7e747656e0bb832dc38e3b1781247224452d31ac",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "68c178ebfc449e59ef1dda067d6035018a830db9ea10b9436d9d7050bc07755b",
+  "proof": "4d0f701f82792f97e3f96a469000cba557d36bebef38303d795c866b60495678",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

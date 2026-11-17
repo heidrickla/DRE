@@ -1,0 +1,7 @@
+model:
+  id: internal-web-outage
+  version: 0.1.0
+  requires_engine: 0.11.0
+  description: >-
+    Diagnosis of an unavailable internal web application from partial,
+    stale, and sometimes misleading infrastructure observations.

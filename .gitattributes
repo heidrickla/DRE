@@ -1,0 +1,29 @@
+# Line endings are a determinism concern here, not a style preference.
+#
+# `ModelHash` is computed over the raw bytes of model-pack files, precisely
+# so a parser change cannot retroactively alter stored hashes. The
+# consequence is that CRLF and LF versions of the same pack are different
+# models. A Windows checkout with `core.autocrlf=true` would produce a
+# different `ModelHash` from a Linux CI checkout of the same commit, and
+# every cross-machine replay would fail while every file looked identical.
+#
+# So: normalise everything to LF in the repository and in the working tree.
+
+* text=auto eol=lf
+
+# Model packs and experiment records are hashed byte-for-byte. Pinning them
+# explicitly means a future change to the blanket rule above cannot quietly
+# change what a stored hash refers to.
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.json text eol=lf
+
+*.rs   text eol=lf
+*.toml text eol=lf
+*.md   text eol=lf
+
+# Never touched.
+*.png  binary
+*.jpg  binary
+*.pdf  binary
+*.bin  binary

@@ -1,0 +1,8 @@
+model:
+  id: digital-evidence-triage
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: >-
+    Deterministic triage of digital evidence using independently corroborated
+    observations, custody completeness, provenance checks, symbolic inference,
+    and a constrained review workflow.

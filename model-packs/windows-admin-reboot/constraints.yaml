@@ -1,0 +1,59 @@
+constraints:
+  - id: C001
+    description: A reboot must not be scheduled without an open change ticket.
+    hard: true
+    on_undecidable: block
+    conditions:
+      - any:
+          - not:
+              subject: host.reboot_scheduled
+              operator: EQ
+              operand: true
+          - subject: host.change_ticket_open
+            operator: EQ
+            operand: true
+
+  - id: C002
+    description: A reboot must not be scheduled while critical services are degraded.
+    hard: true
+    on_undecidable: block
+    conditions:
+      - any:
+          - not:
+              subject: host.reboot_scheduled
+              operator: EQ
+              operand: true
+          - subject: host.service_health
+            operator: EQ
+            operand: healthy
+
+  - id: C003
+    description: A domain controller must not be scheduled unless another DC is available.
+    hard: true
+    on_undecidable: block
+    conditions:
+      - any:
+          - not:
+              subject: host.reboot_scheduled
+              operator: EQ
+              operand: true
+          - subject: host.is_domain_controller
+            operator: EQ
+            operand: false
+          - subject: host.peer_dc_available
+            operator: EQ
+            operand: true
+
+  - id: C004
+    description: Prefer not to schedule reboots during business hours.
+    hard: false
+    penalty: 8
+    conditions:
+      - any:
+          - not:
+              subject: host.reboot_scheduled
+              operator: EQ
+              operand: true
+          - subject: host.business_hours
+            operator: EQ
+            operand: false

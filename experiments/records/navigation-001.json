@@ -1,0 +1,10 @@
+{
+  "experiment": "navigation-001",
+  "input": "75e6a72f89bcab7951cbb57f438e60726ba4ec3a1f39ef8a2c2f9b24d2dca0a4",
+  "model": "115f179246aaa0cca28d1ea506659585a9a50ce850d42e4c56186e38f08c69ea",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "6d418d6a8e44cba06236b2ce064d35066f55035858e488a82da6ecb989fbedbf",
+  "proof": "33ac13277d57dd807f3cac328f89d3c9de13f10c50786cc8a52aaef9090c6b37",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

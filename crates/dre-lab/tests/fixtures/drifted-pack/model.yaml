@@ -1,0 +1,16 @@
+# A pack that is correct in every way except one: a region was added and
+# the ontology's vocabulary for `nearest_region` was not extended.
+#
+# Test fixture. Separate from `broken-pack` because it needs everything
+# else to be right for the drift to be the only finding -- a fixture with
+# six faults cannot show that the seventh is detected on its own.
+#
+# This is the realistic version of the mistake. Nobody writes a region and
+# a vocabulary that disagree in one sitting; they add a region six months
+# later, in a different file, and nothing connects the two.
+
+model:
+  id: drifted-fixture
+  version: 0.1.0
+  requires_engine: 0.1.0
+  description: A region the ontology's vocabulary does not admit.

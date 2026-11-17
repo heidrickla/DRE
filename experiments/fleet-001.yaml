@@ -1,0 +1,51 @@
+# Three switches, one rule, one threshold.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# R001 binds once per instance of `switch`. sw-a at 95 and sw-c at 88 clear
+# eighty; sw-b at 50 does not.
+#
+#   sw-a.overloaded = true
+#   sw-b.overloaded = unknown   (no rule concludes falsehood)
+#   sw-c.overloaded = true
+#
+# One rule, three bindings, two firings.
+
+experiment:
+  id: fleet-001
+  description: >-
+    One rule naming an entity type, applied across three instances of it.
+  pack: model-packs/fleet
+
+  given:
+    entities:
+      - id: sw-a
+        type: switch
+        properties:
+          - name: cpu_load
+            value: 95
+            status: KNOWN
+          - name: overloaded
+      - id: sw-b
+        type: switch
+        properties:
+          - name: cpu_load
+            value: 50
+            status: KNOWN
+          - name: overloaded
+      - id: sw-c
+        type: switch
+        properties:
+          - name: cpu_load
+            value: 88
+            status: KNOWN
+          - name: overloaded
+
+  expect:
+    properties:
+      - subject: sw-a.overloaded
+        value: true
+      - subject: sw-c.overloaded
+        value: true
+      - subject: sw-b.overloaded
+        status: UNKNOWN

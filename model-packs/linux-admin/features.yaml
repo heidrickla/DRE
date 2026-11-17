@@ -1,0 +1,25 @@
+features:
+  - id: F001
+    subject: unit.last_failure_age
+    description: Logical ticks elapsed since the unit's recorded failure.
+    expression:
+      subtract:
+        - subject: unit.boot_tick
+        - subject: unit.failure_tick
+    when:
+      - subject: unit.boot_tick
+        operator: GTE
+        operand: 0
+      - subject: unit.failure_tick
+        operator: GTE
+        operand: 0
+
+  - id: F002
+    subject: unit.pressure_score
+    description: Aggregate count-like pressure from independent failure surfaces.
+    expression:
+      add:
+        - subject: unit.mount_pressure
+        - subject: unit.package_pressure
+        - subject: unit.module_pressure
+        - subject: unit.config_pressure

@@ -1,0 +1,38 @@
+[package]
+name = "dre-lab"
+description = "Phase 12: DRE Lab. CLI for running, replaying, benchmarking, and validating experiments."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+name = "dre_lab"
+path = "src/lib.rs"
+
+[[bin]]
+name = "dre"
+path = "src/main.rs"
+
+[dependencies]
+dre-core = { workspace = true }
+dre-state = { workspace = true }
+dre-evidence = { workspace = true }
+dre-model = { workspace = true }
+dre-proof = { workspace = true }
+dre-symbolic = { workspace = true }
+dre-geometry = { workspace = true }
+dre-causal = { workspace = true }
+dre-explain = { workspace = true }
+dre-planner = { workspace = true }
+dre-replay = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde-saphyr = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

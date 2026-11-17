@@ -1,0 +1,125 @@
+# A diagnosis that has not settled, and the question of what to go and
+# measure.
+#
+# Half the cascade has been read and half has not. Two subsystems are
+# erroring, two were never checked, the rail is low and the device is hot.
+# Both accounts are live and neither is comfortable.
+#
+# PREDICTION, RECORDED BEFORE THE FIRST RUN
+# =========================================
+# Four observations hold: undervoltage, two sensor errors, and overheating.
+#
+#   POWER    1.90   coverage 2.25 (1.00 rail + 1.25 for two of the four
+#                   correlated symptoms), less 0.25 unexplained and 0.10
+#   THERMAL  1.40   coverage 2.00, less 0.50 for two unexplained and 0.10
+#
+# So POWER leads by 0.50 and `root_cause` = POWER — but on evidence thin
+# enough that the survey should be the interesting output rather than the
+# diagnosis.
+#
+# `dre survey` should then report:
+#
+#   flow_sensor_error   discriminating, and it FLIPS. True takes POWER's
+#                       lead to +1.00; false refutes the bus mechanism
+#                       outright at -2.00 and hands the diagnosis to
+#                       THERMAL at -1.50. Spread 2.50.
+#   comms_error         the same shape, for the same reason.
+#   door_open           separates nothing. Either answer leaves the lead at
+#                       0.50, because neither account explains a door and
+#                       both are charged the same for ignoring it.
+#
+# That last line is the one worth having. Under the old ranking the door is
+# a perfectly ordinary unknown whose answer changes the state; the
+# explanation layer is what makes it possible to say that measuring it
+# cannot settle anything.
+
+experiment:
+  id: device-cascade-abduction-004
+  description: >-
+    Half a cascade, read half way. Built to have no comfortable answer, so
+    that the useful output is which measurement to take next rather than the
+    diagnosis itself.
+  pack: model-packs/device-cascade-abduction
+
+  given:
+    now: 1000
+    policy:
+      high_reliability: 800
+      corroboration_required: 2
+      freshness_window: 100
+
+    sources:
+      - id: vm-3
+        reliability: 900
+      - id: controller-a
+        reliability: 900
+        independence_group: rail-a
+      - id: tc-17
+        reliability: 900
+        independence_group: rail-a
+      - id: ir-22
+        reliability: 900
+
+    evidence:
+      - id: E001
+        subject: boiler-1
+        predicate: rail_voltage
+        value: 150
+        source: vm-3
+        reliability: 900
+        observed_at: 990
+
+      # Two of the four. The other two subsystems were not interrogated,
+      # and that is the point of the experiment rather than an omission.
+      - id: E010
+        subject: boiler-1
+        predicate: temp_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+      - id: E011
+        subject: boiler-1
+        predicate: pressure_sensor_error
+        value: true
+        source: controller-a
+        reliability: 900
+        observed_at: 990
+
+      - id: E020
+        subject: boiler-1
+        predicate: temperature
+        value: 95
+        source: tc-17
+        reliability: 900
+        observed_at: 990
+      - id: E021
+        subject: boiler-1
+        predicate: temperature
+        value: 95
+        source: ir-22
+        reliability: 900
+        observed_at: 990
+
+    entities:
+      - id: boiler-1
+        type: device
+        properties:
+          # The three nobody has read. Two of them can settle the
+          # diagnosis and one cannot, and the survey is what tells them
+          # apart.
+          - name: flow_sensor_error
+          - name: comms_error
+          - name: door_open
+
+          - name: coolant_level
+          - name: power_fault
+          - name: sensors_degraded
+          - name: overheating
+          - name: root_cause
+
+  expect:
+    properties:
+      - subject: boiler-1.root_cause
+        value: POWER
+        status: INFERRED

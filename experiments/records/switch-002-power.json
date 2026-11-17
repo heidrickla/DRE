@@ -1,0 +1,10 @@
+{
+  "experiment": "switch-002-power",
+  "input": "a9de82bdd6c866d64920d0653a11e905a7a71b2d5836661e7e7addb8c12e5295",
+  "model": "8e65b10c2e457e8caaa7823f1fa90b1994da1f27beef474bbf4ce979d10c96a7",
+  "engine": "2c1655c64368d9367ec69258728e403d0167efe385a10f56c70cfd2c5911828b",
+  "decision": "b59e9bc8a302e0139ea40a99ddd4d68b954e47517f39d7a8e866716f7c0815a3",
+  "proof": "9e02ee678f29805e10f918ddb0254660a90e403dea359115b5b76d308643fbc8",
+  "engine_version": "0.22.0",
+  "note": "engine 0.22.0: defect_in rejects a reading whose predicate the type does not declare"
+}

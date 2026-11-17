@@ -1,0 +1,11 @@
+rules:
+  - id: R001
+    description: A low supply means shedding load.
+    if:
+      - subject: panel-1.supply_state
+        operator: EQ
+        operand: LOW
+    infer:
+      - subject: panel-1.shed_load
+        value: true
+    priority: 100
